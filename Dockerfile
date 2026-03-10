@@ -45,7 +45,10 @@ RUN npm run build
 FROM node:20-alpine AS runtime-deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
-COPY --from=builder /app/package.json ./package.json
+
+# Start from standalone's node_modules so npm install adds to them
+COPY --from=builder /app/.next/standalone/node_modules ./node_modules
+RUN echo '{"private":true}' > package.json
 RUN npm install --no-save prisma@7.4.1 @prisma/adapter-libsql @libsql/client bcryptjs
 
 # ============================================
