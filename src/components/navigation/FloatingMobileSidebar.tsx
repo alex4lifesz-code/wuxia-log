@@ -3,13 +3,18 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect } from "react";
 
 function FloatingMobileSidebar() {
   const { getSortedNavItems, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
+
+  // Auto-close sidebar whenever the route changes
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [pathname, setMobileSidebarOpen]);
 
   const handleClose = useCallback(() => {
     setMobileSidebarOpen(false);

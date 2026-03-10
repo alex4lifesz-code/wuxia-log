@@ -194,8 +194,9 @@ function BottomBar() {
               }}
             >
               <motion.svg
-                animate={{ rotate: mobileSidebarOpen ? 45 : 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                initial={false}
+                animate={{ rotate: mobileSidebarOpen ? 90 : 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 className={`w-6 h-6 ${mobileSidebarOpen ? "text-ink-deep" : "text-cloud-white"}`}
                 fill="none"
                 stroke="currentColor"
