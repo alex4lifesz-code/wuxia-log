@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import PresetSlots from "@/components/ui/PresetSlots";
+import { memo } from "react";
 
-export default function RightPanel() {
+function RightPanel() {
   const { collapsed, isMobile } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const visible = settings.rightPanelVisible;
@@ -104,3 +105,5 @@ export default function RightPanel() {
     </div>
   );
 }
+
+export default memo(RightPanel);

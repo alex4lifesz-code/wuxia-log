@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  login: (user: User, rememberMe?: boolean) => void;
   logout: () => Promise<void>;
 }
 
@@ -24,28 +24,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from localStorage on mount
+  // Load user from localStorage or sessionStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("cultivation-user");
+    const saved = localStorage.getItem("cultivation-user") || sessionStorage.getItem("cultivation-user");
     if (saved) {
       try {
         const parsedUser = JSON.parse(saved);
         setUser(parsedUser);
       } catch {
         localStorage.removeItem("cultivation-user");
+        sessionStorage.removeItem("cultivation-user");
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = useCallback((userData: User) => {
+  const login = useCallback((userData: User, rememberMe = false) => {
     setUser(userData);
-    localStorage.setItem("cultivation-user", JSON.stringify(userData));
+    if (rememberMe) {
+      localStorage.setItem("cultivation-user", JSON.stringify(userData));
+      sessionStorage.removeItem("cultivation-user");
+    } else {
+      sessionStorage.setItem("cultivation-user", JSON.stringify(userData));
+      localStorage.removeItem("cultivation-user");
+    }
   }, []);
 
   const logout = useCallback(async () => {
     setUser(null);
     localStorage.removeItem("cultivation-user");
+    sessionStorage.removeItem("cultivation-user");
     localStorage.removeItem("cultivation-nav-state");
     localStorage.removeItem("cultivation-theme");
     router.push("/");

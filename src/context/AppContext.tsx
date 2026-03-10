@@ -25,6 +25,7 @@ interface AppState {
   viewportMode: ViewportMode;
   topPanelExpanded: boolean;
   trainingMode: TrainingMode;
+  mobileSidebarOpen: boolean;
 }
 
 interface AppContextType extends AppState {
@@ -42,6 +43,8 @@ interface AppContextType extends AppState {
   setViewportMode: (mode: ViewportMode) => void;
   setTopPanelExpanded: (expanded: boolean) => void;
   setTrainingMode: (mode: TrainingMode) => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -60,6 +63,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [viewportMode, setViewportModeState] = useState<ViewportMode>("auto");
   const [topPanelExpanded, setTopPanelExpandedState] = useState(true);
   const [trainingMode, setTrainingModeState] = useState<TrainingMode>("simplified");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Detect native vs browser platform on mount
   useEffect(() => {
@@ -294,6 +298,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setViewportMode,
         setTopPanelExpanded,
         setTrainingMode,
+        mobileSidebarOpen,
+        setMobileSidebarOpen,
       }}
     >
       {children}

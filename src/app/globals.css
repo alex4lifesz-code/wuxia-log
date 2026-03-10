@@ -185,10 +185,14 @@ body {
 
 .animate-glow-pulse {
   animation: glowPulse 3s ease-in-out infinite;
+  will-change: box-shadow, opacity;
+  contain: layout style;
 }
 
 .animate-float {
   animation: floatUp 4s ease-in-out infinite;
+  will-change: transform, opacity;
+  contain: layout style;
 }
 
 .animate-ink-spread {
@@ -197,6 +201,8 @@ body {
 
 .glow-breath {
   animation: glowBreath 3.6s ease-in-out infinite;
+  will-change: box-shadow, opacity;
+  contain: layout style;
 }
 
 .glow-title {

@@ -1,12 +1,12 @@
 "use client";
 
 import { motion, Reorder } from "framer-motion";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
 import { NavItem } from "@/lib/constants";
 
-export default function LeftSidebar() {
+function LeftSidebar() {
   const { getSortedNavItems, collapsed, isMobile, reorderNavItems } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
@@ -84,3 +84,5 @@ export default function LeftSidebar() {
     </motion.aside>
   );
 }
+
+export default memo(LeftSidebar);

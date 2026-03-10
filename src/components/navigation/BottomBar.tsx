@@ -6,7 +6,7 @@ import { useState, memo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 function BottomBar() {
-  const { getSortedNavItems, isMobile, viewportMode, isNativeApp } = useAppContext();
+  const { getSortedNavItems, isMobile, viewportMode, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
@@ -86,9 +86,9 @@ function BottomBar() {
           )}
         </AnimatePresence>
 
-        {/* Navigation bar — 3 primary items + hamburger */}
+        {/* Navigation bar — nav items with center drawer button */}
         <div 
-          className="relative bg-gradient-to-b from-ink-dark to-ink-deep border-t border-jade-glow/10 flex justify-around items-center px-2 py-3 safe-area-bottom shadow-2xl"
+          className="relative bg-gradient-to-b from-ink-dark to-ink-deep border-t border-jade-glow/10 flex justify-around items-end px-2 pb-3 pt-3 safe-area-bottom shadow-2xl"
           style={{
             borderRadius: '24px 24px 0 0',
             boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.3), 0 -2px 8px rgba(52, 211, 153, 0.1)',
@@ -101,7 +101,9 @@ function BottomBar() {
             className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-jade-glow/20 to-transparent"
             style={{ transform: 'translateY(-100%)' }}
           />
-          {primaryItems.map((item) => {
+
+          {/* First two nav items */}
+          {primaryItems.slice(0, 2).map((item) => {
             const isActive = pathname === item.path;
             return (
               <motion.button
@@ -117,7 +119,95 @@ function BottomBar() {
                   duration: 0.25,
                 }}
                 onClick={() => router.push(item.path)}
-                className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
+                className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
+                  isActive
+                    ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                    : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
+                }`}
+                style={{
+                  willChange: 'transform',
+                  transform: isActive ? 'translateZ(0)' : undefined,
+                }}
+              >
+                <motion.span 
+                  className="text-xl"
+                  animate={{ rotate: isActive ? [0, -10, 10, -5, 5, 0] : 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {item.icon}
+                </motion.span>
+                <span className={`text-[10px] font-semibold tracking-wide ${
+                  isActive ? "text-jade-glow" : ""
+                }`}>
+                  {item.label.split(" ")[0]}
+                </span>
+                {isActive && (
+                  <motion.div
+                    layoutId="bottomBarIndicator"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                    style={{
+                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                    }}
+                  />
+                )}
+              </motion.button>
+            );
+          })}
+
+          {/* Center drawer button — visually distinct, elevated */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            animate={{
+              scale: mobileSidebarOpen ? 1.1 : 1,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+            }}
+            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            className={`relative flex items-center justify-center w-14 h-14 -mt-5 rounded-full border-2 shadow-xl transition-all duration-300 ${
+              mobileSidebarOpen
+                ? "bg-jade-deep border-jade-glow shadow-jade-glow/40"
+                : "bg-gradient-to-br from-jade-deep to-ink-dark border-jade-glow/50 shadow-jade-glow/20 hover:shadow-jade-glow/30"
+            }`}
+            style={{
+              willChange: 'transform',
+              boxShadow: mobileSidebarOpen
+                ? '0 0 20px rgba(52, 211, 153, 0.5), 0 4px 12px rgba(0,0,0,0.4)'
+                : '0 0 12px rgba(52, 211, 153, 0.2), 0 4px 12px rgba(0,0,0,0.3)',
+            }}
+          >
+            <motion.svg
+              className="w-6 h-6 text-jade-glow"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              animate={{ rotate: mobileSidebarOpen ? 90 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+            </motion.svg>
+          </motion.button>
+
+          {/* Third nav item */}
+          {primaryItems.slice(2, 3).map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <motion.button
+                key={item.id}
+                whileTap={{ scale: 0.85 }}
+                animate={{
+                  scale: isActive ? 1.15 : 1,
+                  y: isActive ? -2 : 0,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  duration: 0.25,
+                }}
+                onClick={() => router.push(item.path)}
+                className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
                   isActive
                     ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
                     : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"

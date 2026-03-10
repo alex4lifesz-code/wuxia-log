@@ -5,9 +5,6 @@ import { ReactNode, useState, useEffect, useCallback, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 
-const SIDEBAR_FAB_STORAGE_KEY = "cultivateos-sidebar-fab-pos";
-const QV_FAB_STORAGE_KEY = "cultivateos-qv-fab-pos";
-
 interface PageLayoutProps {
   children: ReactNode;
   sidebar?: ReactNode;
@@ -24,45 +21,12 @@ export default function PageLayout({
   subtitle,
   sidebarLabel,
 }: PageLayoutProps) {
-  const { panelPosition, isMobile, isNativeApp } = useAppContext();
+  const { panelPosition, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const effectivePosition = isMobile ? "top" : panelPosition;
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [mobileQuickViewOpen, setMobileQuickViewOpen] = useState(false);
   const sidebarPosition = settings.sidebarPosition || "left";
   const sidebarWidth = settings.sidebarWidth || 320;
-
-  // Draggable FAB positions
-  const [sidebarFabPos, setSidebarFabPos] = useState<{ x: number; y: number } | null>(null);
-  const [qvFabPos, setQvFabPos] = useState<{ x: number; y: number } | null>(null);
-  const sidebarFabRef = useRef<HTMLDivElement>(null);
-  const qvFabRef = useRef<HTMLDivElement>(null);
-
-  // Load persisted FAB positions
-  useEffect(() => {
-    try {
-      const savedSidebar = localStorage.getItem(SIDEBAR_FAB_STORAGE_KEY);
-      if (savedSidebar) setSidebarFabPos(JSON.parse(savedSidebar));
-      const savedQv = localStorage.getItem(QV_FAB_STORAGE_KEY);
-      if (savedQv) setQvFabPos(JSON.parse(savedQv));
-    } catch { /* ignore */ }
-  }, []);
-
-  const handleSidebarFabDragEnd = useCallback((_: any, info: any) => {
-    setSidebarFabPos(prev => {
-      const newPos = { x: (prev?.x || 0) + info.offset.x, y: (prev?.y || 0) + info.offset.y };
-      try { localStorage.setItem(SIDEBAR_FAB_STORAGE_KEY, JSON.stringify(newPos)); } catch {}
-      return newPos;
-    });
-  }, []);
-
-  const handleQvFabDragEnd = useCallback((_: any, info: any) => {
-    setQvFabPos(prev => {
-      const newPos = { x: (prev?.x || 0) + info.offset.x, y: (prev?.y || 0) + info.offset.y };
-      try { localStorage.setItem(QV_FAB_STORAGE_KEY, JSON.stringify(newPos)); } catch {}
-      return newPos;
-    });
-  }, []);
 
   // Resize state
   const [isResizing, setIsResizing] = useState(false);
@@ -235,15 +199,9 @@ export default function PageLayout({
 
       {/* Mobile Quick View button — top-right corner (native APK only) */}
       {isMobile && isNativeApp && (
-        <motion.div
-          ref={qvFabRef}
-          drag
-          dragMomentum={false}
-          dragElastic={0}
-          onDragEnd={handleQvFabDragEnd}
-          animate={qvFabPos || { x: 0, y: 0 }}
-          className="fixed top-14 right-3 z-60 touch-none"
-          style={{ cursor: "grab", zIndex: 60 }}
+        <div
+          className="fixed top-14 right-3 z-60"
+          style={{ zIndex: 60 }}
         >
           <motion.button
             whileTap={{ scale: 0.9 }}
@@ -259,40 +217,7 @@ export default function PageLayout({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
             </svg>
           </motion.button>
-        </motion.div>
-      )}
-
-      {/* Mobile sidebar FAB — draggable (native APK only) */}
-      {isMobile && isNativeApp && sidebar && (
-        <motion.div
-          ref={sidebarFabRef}
-          drag
-          dragMomentum={false}
-          dragElastic={0}
-          onDragEnd={handleSidebarFabDragEnd}
-          animate={sidebarFabPos || { x: 0, y: 0 }}
-          className="fixed right-4 z-60 touch-none"
-          style={{ 
-            cursor: "grab",
-            zIndex: 60,
-            bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
-          }}
-        >
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              if (mobileQuickViewOpen) setMobileQuickViewOpen(false);
-              setMobileSidebarOpen(true);
-            }}
-            className="w-12 h-12 rounded-full bg-jade-deep border border-jade-glow/40 flex items-center justify-center shadow-lg shadow-jade-glow/20"
-            title={sidebarLabel || title}
-            style={{ willChange: 'transform' }}
-          >
-            <svg className="w-5 h-5 text-jade-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-            </svg>
-          </motion.button>
-        </motion.div>
+        </div>
       )}
 
       {/* Mobile slide-in sidebar (page panel) — native APK only */}

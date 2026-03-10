@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -14,7 +14,7 @@ interface Stats {
   sessions: number;
 }
 
-export default function TopBar() {
+function TopBar() {
   const { getSortedNavItems, collapsed, isMobile, topPanelExpanded, setTopPanelExpanded, setCollapsed, panelPosition } = useAppContext();
   const { user } = useAuth();
   const router = useRouter();
@@ -22,55 +22,26 @@ export default function TopBar() {
   const items = getSortedNavItems();
   const [stats, setStats] = useState<Stats>({ xp: 0, streak: 0, realm: "Mortal", sessions: 0 });
   const [loading, setLoading] = useState(true);
-  const [mouseY, setMouseY] = useState(0);
-
-  // Drag-down gesture to reveal Quick View in collapsed mode
-  useEffect(() => {
-    if (!collapsed) return;
-    let startY = 0;
-    let startX = 0;
-    const handleTouchStart = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (t.clientY < 50) {
-        startY = t.clientY;
-        startX = t.clientX;
-      }
-    };
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (startY === 0) return;
-      const t = e.changedTouches[0];
-      const dy = t.clientY - startY;
-      const dx = Math.abs(t.clientX - startX);
-      if (dy > 60 && dx < 80 && !topPanelExpanded) {
-        setTopPanelExpanded(true);
-      }
-      startY = 0;
-    };
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchend", handleTouchEnd, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [collapsed, topPanelExpanded, setTopPanelExpanded]);
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!user) return;
       try {
-        // Fetch experience
-        const expRes = await fetch(`/api/users/experience?userId=${user.id}`);
-        const expData = await expRes.json();
-        const userExp = expData.user?.experience || 0;
+        // Fetch all data in parallel
+        const [expRes, workoutRes, checkinsRes] = await Promise.all([
+          fetch(`/api/users/experience?userId=${user.id}`),
+          fetch(`/api/workouts?userId=${user.id}`),
+          fetch("/api/checkins"),
+        ]);
+        const [expData, workoutData, checkinsData] = await Promise.all([
+          expRes.json(),
+          workoutRes.json(),
+          checkinsRes.json(),
+        ]);
 
-        // Fetch workouts for the current user
-        const workoutRes = await fetch(`/api/workouts?userId=${user.id}`);
-        const workoutData = await workoutRes.json();
+        const userExp = expData.user?.experience || 0;
         const userWorkouts = workoutData.workouts || [];
 
-        // Fetch check-ins for streak
-        const checkinsRes = await fetch("/api/checkins");
-        const checkinsData = await checkinsRes.json();
         const dates = new Set<string>();
         for (const checkin of checkinsData.checkins || []) {
           if (checkin.present) {
@@ -117,7 +88,7 @@ export default function TopBar() {
     };
 
     fetchStats();
-    const interval = setInterval(fetchStats, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchStats, 60000); // Refresh every 60 seconds
     return () => clearInterval(interval);
   }, [user]);
 
@@ -141,7 +112,7 @@ export default function TopBar() {
           />
         </motion.div>
         
-        {/* Quick View panel — hidden by default, revealed via tap or drag down */}
+        {/* Quick View panel — hidden by default, revealed via tap */}
         <AnimatePresence>
           {topPanelExpanded && (
             <motion.div
@@ -350,3 +321,5 @@ export default function TopBar() {
     </>
   );
 }
+
+export default memo(TopBar);

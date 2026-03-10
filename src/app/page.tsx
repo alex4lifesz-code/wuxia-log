@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
@@ -43,7 +44,7 @@ export default function LoginPage() {
 
       // Save user session
       if (data.user) {
-        login(data.user);
+        login(data.user, rememberMe);
       }
 
       router.push("/dashboard");
@@ -182,6 +183,27 @@ export default function LoginPage() {
                 required
               />
             </motion.div>
+
+            {/* Remember Me */}
+            {!isRegister && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.55 }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-ink-light bg-ink-dark accent-jade-glow cursor-pointer"
+                />
+                <label htmlFor="rememberMe" className="text-xs text-mist-mid cursor-pointer select-none">
+                  记住我 · Remember Me
+                </label>
+              </motion.div>
+            )}
 
             {error && (
               <motion.p
