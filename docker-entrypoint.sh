@@ -4,37 +4,39 @@ set -e
 echo "=== Wuxia Cultivation Tracker - Starting ==="
 echo "DATABASE_URL: ${DATABASE_URL}"
 
-# Push schema directly to database (creates all tables)
-echo "Pushing database schema..."
-npx prisma db push --schema=./prisma/schema.prisma --skip-generate --accept-data-loss 2>&1
-echo "Schema push complete."
+# Extract file path from DATABASE_URL (e.g. "file:/app/data/cultivation.db" -> "/app/data/cultivation.db")
+DB_PATH=$(echo "$DATABASE_URL" | sed 's|^file:||')
 
-# Seed admin account if no users exist (first run)
+# Run migrations
+echo "Running database migrations..."
+npx prisma migrate deploy --schema=./prisma/schema.prisma 2>&1
+echo "Migrations complete."
+
+# Seed admin account if no users exist (uses @libsql/client directly, not Prisma client)
 echo "Checking for existing users..."
 node -e '
-const { PrismaClient } = require("./src/generated/prisma/client");
-const { PrismaLibSql } = require("@prisma/adapter-libsql");
+const { createClient } = require("@libsql/client");
 const bcrypt = require("bcryptjs");
 
 async function seed() {
-  const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL });
-  const prisma = new PrismaClient({ adapter });
-  try {
-    const count = await prisma.user.count();
-    if (count === 0) {
-      console.log("No users found. Creating default admin account...");
-      const hash = await bcrypt.hash("admin", 10);
-      await prisma.user.create({
-        data: { username: "admin", password: hash, name: "Administrator", role: "admin", experience: 0 }
-      });
-      console.log("Default admin account created (admin/admin).");
-      console.log("WARNING: Change default password after first login.");
-    } else {
-      console.log("Found " + count + " existing user(s). Skipping seed.");
-    }
-  } finally {
-    await prisma.$disconnect();
+  const client = createClient({ url: process.env.DATABASE_URL });
+  const result = await client.execute("SELECT COUNT(*) as cnt FROM User");
+  const count = result.rows[0].cnt;
+  if (count === 0) {
+    console.log("No users found. Creating default admin account...");
+    const id = "admin_" + Date.now().toString(36);
+    const hash = await bcrypt.hash("admin", 10);
+    const now = new Date().toISOString();
+    await client.execute({
+      sql: "INSERT INTO User (id, username, password, name, role, experience, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      args: [id, "admin", hash, "Administrator", "admin", 0, now, now]
+    });
+    console.log("Default admin account created (admin/admin).");
+    console.log("WARNING: Change default password after first login.");
+  } else {
+    console.log("Found " + count + " existing user(s). Skipping seed.");
   }
+  client.close();
 }
 seed().catch(e => { console.error("Seed error:", e); process.exit(1); });
 '
