@@ -470,6 +470,62 @@ body {
   --col-reps-bg: rgba(216, 184, 112, 0.08);
 }
 
+/* Sakura Dark — non-prefixed class for inner component scoping */
+.sakura-dark {
+  --void-black: #0c080e;
+  --ink-deep: #130e16;
+  --ink-dark: #1a1420;
+  --ink-mid: #241c2a;
+  --ink-light: #332838;
+  --mist-dark: #5a4860;
+  --mist-mid: #7a6880;
+  --mist-light: #9a88a0;
+  --mist-pale: #b8a8be;
+  --cloud-white: #e0d4e4;
+  --pure-white: #f0e8f2;
+
+  --jade-deep: #2a1020;
+  --jade: #8a3060;
+  --jade-glow: #d4508a;
+  --jade-light: #e8689e;
+  --crimson-deep: #2a0a18;
+  --crimson: #a02858;
+  --crimson-glow: #d03870;
+  --crimson-light: #e85088;
+  --mountain-blue: #6a5888;
+  --mountain-blue-glow: #8870a8;
+  --forest-deep: #101810;
+  --forest: #284028;
+  --gold-dim: #b07888;
+  --gold: #d0889a;
+  --gold-glow: #e898aa;
+
+  --background: var(--void-black);
+  --foreground: var(--cloud-white);
+  --surface: var(--ink-deep);
+  --surface-hover: var(--ink-mid);
+  --border: var(--ink-light);
+  --border-glow: var(--jade);
+  --text-primary: var(--cloud-white);
+  --text-secondary: var(--mist-light);
+  --text-muted: var(--mist-dark);
+  --accent: var(--jade-glow);
+  --accent-hover: var(--jade-light);
+  --danger: var(--crimson);
+  --danger-hover: var(--crimson-glow);
+
+  --glow-jade: 0 0 20px rgba(212, 80, 138, 0.3), 0 0 40px rgba(212, 80, 138, 0.12);
+  --glow-crimson: 0 0 20px rgba(208, 56, 112, 0.25), 0 0 40px rgba(208, 56, 112, 0.1);
+  --glow-gold: 0 0 20px rgba(232, 152, 170, 0.3), 0 0 40px rgba(232, 152, 170, 0.12);
+  --glow-blue: 0 0 20px rgba(136, 112, 168, 0.2), 0 0 40px rgba(136, 112, 168, 0.08);
+  --glow-subtle: 0 0 10px rgba(212, 80, 138, 0.15);
+
+  --col-weight: #9a88a0;
+  --col-weight-bg: rgba(154, 136, 160, 0.06);
+  --col-reps: #d4508a;
+  --col-reps-bg: rgba(212, 80, 138, 0.08);
+}
+
 /* ===== Custom Scrollbar — Sidebar & General ===== */
 .sidebar-scroll::-webkit-scrollbar {
   width: 4px;
@@ -742,6 +798,87 @@ html.sakura ::selection {
 
 html.sakura * {
   scrollbar-color: #d4888c #faf7f6;
+}
+
+/* ===== SAKURA DARK THEME — Deep Sakura & Rose Night ===== */
+/* Inspired by cherry blossoms under moonlight: deep night backgrounds,
+   sakura pink accents, rose highlights, and refined dark elegance. */
+
+html.sakura-dark {
+  /* Core palette — deep night with plum undertones */
+  --void-black: #0c080e;
+  --ink-deep: #130e16;
+  --ink-dark: #1a1420;
+  --ink-mid: #241c2a;
+  --ink-light: #332838;
+  --mist-dark: #5a4860;
+  --mist-mid: #7a6880;
+  --mist-light: #9a88a0;
+  --mist-pale: #b8a8be;
+  --cloud-white: #e0d4e4;
+  --pure-white: #f0e8f2;
+
+  /* Accent colours — sakura pink, rose, and deep cherry */
+  --jade-deep: #2a1020;
+  --jade: #8a3060;
+  --jade-glow: #d4508a;
+  --jade-light: #e8689e;
+  --crimson-deep: #2a0a18;
+  --crimson: #a02858;
+  --crimson-glow: #d03870;
+  --crimson-light: #e85088;
+  --mountain-blue: #6a5888;
+  --mountain-blue-glow: #8870a8;
+  --forest-deep: #101810;
+  --forest: #284028;
+  --gold-dim: #b07888;
+  --gold: #d0889a;
+  --gold-glow: #e898aa;
+
+  /* Semantic tokens */
+  --background: #0c080e;
+  --foreground: #e0d4e4;
+  --surface: #130e16;
+  --surface-hover: #1a1420;
+  --border: #332838;
+  --border-glow: #d4508a;
+  --text-primary: #e0d4e4;
+  --text-secondary: #9a88a0;
+  --text-muted: #5a4860;
+  --accent: #d4508a;
+  --accent-hover: #e8689e;
+  --danger: #d03870;
+  --danger-hover: #e85088;
+
+  /* Glow effects — soft sakura pink radiance */
+  --glow-jade: 0 0 20px rgba(212, 80, 138, 0.3), 0 0 40px rgba(212, 80, 138, 0.12);
+  --glow-crimson: 0 0 20px rgba(208, 56, 112, 0.25), 0 0 40px rgba(208, 56, 112, 0.1);
+  --glow-gold: 0 0 20px rgba(232, 152, 170, 0.3), 0 0 40px rgba(232, 152, 170, 0.12);
+  --glow-blue: 0 0 20px rgba(136, 112, 168, 0.2), 0 0 40px rgba(136, 112, 168, 0.08);
+  --glow-subtle: 0 0 10px rgba(212, 80, 138, 0.15);
+
+  /* Column colours for W/R differentiation */
+  --col-weight: #9a88a0;
+  --col-weight-bg: rgba(154, 136, 160, 0.06);
+  --col-reps: #d4508a;
+  --col-reps-bg: rgba(212, 80, 138, 0.08);
+}
+
+html.sakura-dark .cultivation-gradient {
+  background: linear-gradient(135deg, #130e16, #1a1420, #241c2a);
+}
+
+html.sakura-dark .mist-overlay {
+  background: linear-gradient(180deg, transparent, rgba(12, 8, 14, 0.95));
+}
+
+html.sakura-dark ::selection {
+  background: #332838;
+  color: #e8689e;
+}
+
+html.sakura-dark * {
+  scrollbar-color: #332838 #0c080e;
 }
 
 /* ===== Hide Number Input Spinners Globally ===== */

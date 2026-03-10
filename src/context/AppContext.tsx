@@ -5,7 +5,7 @@ import { NavItem, defaultNavItems } from "@/lib/constants";
 import { isNativePlatform } from "@/lib/platform";
 
 type ThemeMode = "dark" | "light";
-type ThemeStyle = "midnight-ink" | "mountain-mist" | "calligraphy" | "sakura";
+type ThemeStyle = "midnight-ink" | "mountain-mist" | "calligraphy" | "sakura" | "sakura-dark";
 type NavigationMode = "top" | "side";
 type ViewportMode = "auto" | "mobile" | "desktop";
 type TrainingMode = "simplified" | "detailed";
@@ -138,7 +138,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setTheme(saved);
     }
     const savedStyle = localStorage.getItem("cultivation-theme-style") as ThemeStyle | null;
-    if (savedStyle && ["midnight-ink", "mountain-mist", "calligraphy", "sakura"].includes(savedStyle)) {
+    if (savedStyle && ["midnight-ink", "mountain-mist", "calligraphy", "sakura", "sakura-dark"].includes(savedStyle)) {
       setThemeStyle(savedStyle);
     }
   }, []);
@@ -159,7 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setThemeStyle = useCallback((style: ThemeStyle) => {
     setThemeStyleState(style);
     if (typeof window !== "undefined") {
-      document.documentElement.classList.remove("midnight-ink", "mountain-mist", "calligraphy", "sakura");
+      document.documentElement.classList.remove("midnight-ink", "mountain-mist", "calligraphy", "sakura", "sakura-dark");
       document.documentElement.classList.add(style);
       localStorage.setItem("cultivation-theme-style", style);
     }
