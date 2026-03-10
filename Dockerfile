@@ -18,9 +18,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
-COPY src/generated ./src/generated
 
-# Generate Prisma client
+# Create output directory and generate Prisma client
+RUN mkdir -p src/generated/prisma
 RUN npx prisma generate
 
 # ============================================
