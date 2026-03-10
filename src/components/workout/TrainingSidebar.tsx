@@ -424,22 +424,21 @@ export default function TrainingSidebar({
             ))}
           </div>
         ) : showEmptyDayAction ? (
-          /* Empty day — contextual "+" CTA to open Manage drawer */
+          /* Empty day — prompt to use Manage drawer */
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
             <div className="text-4xl opacity-40">📋</div>
             <p className="text-xs text-mist-dark text-center">
               No techniques assigned to <span className="text-mist-light font-medium">{DAY_ABBREVIATIONS[selectedDayFilter!]}</span>
             </p>
-            <button
+            <GlowButton
               onClick={(e) => { e.stopPropagation(); onDrawerOpen(); }}
-              className="w-12 h-12 rounded-full bg-jade-deep/40 border-2 border-dashed border-jade-glow/50 flex items-center justify-center text-jade-glow hover:bg-jade-deep/60 hover:border-jade-glow hover:shadow-[0_0_15px_rgba(58,143,143,0.3)] transition-all duration-300 group"
-              title="Add techniques to this day"
+              variant="jade"
+              size="sm"
+              glow
+              className="!text-[11px]"
             >
-              <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-            <p className="text-[10px] text-mist-dark">Assign techniques</p>
+              ⚙ Manage Techniques
+            </GlowButton>
           </div>
         ) : searchFilteredExercises.length === 0 ? (
           <div className="text-center text-mist-dark py-6">

@@ -48,7 +48,8 @@ function BottomBar() {
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
     setMenuOpen(false);
-  }, [router]);
+    setMobileSidebarOpen(false);
+  }, [router, setMobileSidebarOpen]);
 
   const handleFABPress = useCallback(() => {
     setMobileSidebarOpen(!mobileSidebarOpen);
@@ -152,7 +153,7 @@ function BottomBar() {
               <motion.button
                 key={item.id}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => { router.push(item.path); setMobileSidebarOpen(false); setMenuOpen(false); }}
                 className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
                   isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
                 }`}
@@ -222,7 +223,7 @@ function BottomBar() {
               <motion.button
                 key={item.id}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => router.push(item.path)}
+                onClick={() => { router.push(item.path); setMobileSidebarOpen(false); setMenuOpen(false); }}
                 className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
                   isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
                 }`}
