@@ -2,301 +2,267 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
-import { useState, memo } from "react";
+import { useState, memo, useCallback, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
+const NAV_ICON_MAP: Record<string, ReactNode> = {
+  "/dashboard": (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
+    </svg>
+  ),
+  "/dashboard/workout": (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
+  "/dashboard/exercises": (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  ),
+};
+
 function BottomBar() {
-  const { getSortedNavItems, isMobile, viewportMode, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
+  const { getSortedNavItems, isMobile, viewportMode, isNativeApp, setMobileSidebarOpen, mobileSidebarOpen } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Only show on mobile layout AND only in native APK
   const effectiveMobile = isMobile || viewportMode === "mobile";
   if (!isNativeApp || !effectiveMobile) return null;
 
-  // Primary 3-item navigation: Dao Hall, Training Grounds, Technique Scroll
-  const primaryItems = [
+  const primaryItems = useMemo(() => [
     items.find(i => i.path === "/dashboard"),
     items.find(i => i.path === "/dashboard/workout"),
     items.find(i => i.path === "/dashboard/exercises"),
-  ].filter(Boolean) as typeof items;
+  ].filter(Boolean) as typeof items, [items]);
 
-  // All remaining items for the hamburger menu
-  const moreItems = items.filter(i => !primaryItems.find(p => p.id === i.id));
+  const moreItems = useMemo(
+    () => items.filter(i => !primaryItems.find(p => p.id === i.id)),
+    [items, primaryItems]
+  );
 
+  const handleNavigate = useCallback((path: string) => {
+    router.push(path);
+    setMenuOpen(false);
+  }, [router]);
+
+  const handleFABPress = useCallback(() => {
+    setMobileSidebarOpen(!mobileSidebarOpen);
+  }, [setMobileSidebarOpen, mobileSidebarOpen]);
+
+  const handleMenuToggle = useCallback(() => {
+    setMenuOpen(prev => !prev);
+  }, []);
+
+  // Build nav button order: [item0, item1, FAB, item2, More]
   return (
     <>
-      {/* Overlay for expanded hamburger menu */}
+      {/* Overlay for expanded menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-void-black/60 z-40"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-void-black/60 z-40 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
-        {/* Expanded hamburger menu */}
+        {/* Expanded menu drawer */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-              className="bg-ink-deep border-t border-jade-deep/50 rounded-t-xl mx-2 p-3 mb-0"
+              initial={{ y: 40, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", damping: 26, stiffness: 300 }}
+              className="bg-ink-deep/95 backdrop-blur-lg border-t border-jade-deep/30 rounded-t-2xl mx-3 p-2 mb-0"
             >
-              <div className="flex items-center justify-between mb-2 px-2">
-                <span className="text-[10px] uppercase tracking-wider text-mist-dark font-semibold">Navigation</span>
+              <div className="flex items-center justify-between mb-1 px-3 pt-1">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-mist-dark font-semibold">Navigation</span>
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="p-1 rounded text-mist-dark hover:text-cloud-white transition-colors"
+                  className="p-1.5 rounded-lg text-mist-dark active:text-cloud-white active:bg-white/10 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              {moreItems.map((item) => (
-                <motion.button
-                  key={item.id}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full text-left ${
-                    pathname === item.path
-                      ? "text-jade-light bg-jade-deep/30"
-                      : "text-mist-light hover:text-jade-light hover:bg-ink-mid"
-                  }`}
-                  onClick={() => {
-                    router.push(item.path);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm">{item.label}</span>
-                </motion.button>
-              ))}
+              <div className="grid grid-cols-2 gap-1.5 px-1">
+                {moreItems.map((item, index) => (
+                  <motion.button
+                    key={item.id}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: index * 0.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`flex items-center gap-2.5 px-3 py-3 rounded-xl transition-colors min-h-[48px] ${
+                      pathname === item.path
+                        ? "text-jade-light bg-jade-deep/30 border border-jade/20"
+                        : "text-mist-light active:text-jade-light active:bg-ink-mid/60 border border-transparent"
+                    }`}
+                    onClick={() => handleNavigate(item.path)}
+                  >
+                    <span className="text-base flex-shrink-0">{item.icon}</span>
+                    <span className="text-[13px] font-medium truncate">{item.label}</span>
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Navigation bar — nav items with center drawer button */}
-        <div 
-          className="relative bg-gradient-to-b from-ink-dark to-ink-deep border-t border-jade-glow/10 flex justify-around items-end px-2 pb-3 pt-3 safe-area-bottom shadow-2xl"
+        {/* ── Main Bottom Navigation Bar ── */}
+        <nav
+          className="relative bg-ink-deep/95 backdrop-blur-lg border-t border-jade-glow/8 flex items-end justify-around px-1 pb-1 safe-area-bottom"
           style={{
-            borderRadius: '24px 24px 0 0',
-            boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.3), 0 -2px 8px rgba(52, 211, 153, 0.1)',
-            backdropFilter: 'blur(12px)',
-            willChange: 'transform',
+            borderRadius: '20px 20px 0 0',
+            boxShadow: '0 -2px 20px rgba(0,0,0,0.4)',
           }}
         >
-          {/* 3D curved edge effect */}
-          <div 
-            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-jade-glow/20 to-transparent"
-            style={{ transform: 'translateY(-100%)' }}
-          />
+          {/* Glow accent line */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-jade-glow/15 to-transparent" />
 
-          {/* First two nav items */}
+          {/* Left nav items */}
           {primaryItems.slice(0, 2).map((item) => {
             const isActive = pathname === item.path;
             return (
               <motion.button
                 key={item.id}
-                whileTap={{ scale: 0.85 }}
-                animate={{
-                  scale: isActive ? 1.15 : 1,
-                  y: isActive ? -2 : 0,
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  duration: 0.25,
-                }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => router.push(item.path)}
-                className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
-                    : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
+                className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
+                  isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
                 }`}
-                style={{
-                  willChange: 'transform',
-                  transform: isActive ? 'translateZ(0)' : undefined,
-                  boxShadow: isActive ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
-                }}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <motion.span 
-                  className="text-xl"
-                  animate={{ rotate: isActive ? [0, -10, 10, -5, 5, 0] : 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {item.icon}
-                </motion.span>
-                <span className={`text-[10px] font-semibold tracking-wide ${
-                  isActive ? "text-jade-glow" : ""
-                }`}>
+                <div className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
+                  {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
+                </div>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
                   {item.label.split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
-                    layoutId="bottomBarIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
-                    style={{
-                      boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
-                    }}
+                    layoutId="bottomBarActiveTab"
+                    className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
+                    style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
               </motion.button>
             );
           })}
 
-          {/* Center drawer button — visually distinct, elevated rectangular */}
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            animate={{
-              scale: mobileSidebarOpen ? 1.1 : 1,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-            }}
-            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className={`relative flex items-center justify-center w-16 border-2 shadow-xl transition-all duration-300 ${
-              mobileSidebarOpen
-                ? "bg-jade-deep border-jade-glow shadow-jade-glow/40"
-                : "bg-gradient-to-br from-jade-deep to-ink-dark border-jade-glow/50 shadow-jade-glow/20 hover:shadow-jade-glow/30"
-            }`}
-            style={{
-              height: '52px',
-              marginTop: '-11.3px',
-              borderRadius: '14px',
-              willChange: 'transform',
-              boxShadow: mobileSidebarOpen
-                ? '0 0 20px rgba(52, 211, 153, 0.5), 0 4px 12px rgba(0,0,0,0.4)'
-                : '0 0 12px rgba(52, 211, 153, 0.2), 0 4px 12px rgba(0,0,0,0.3)',
-            }}
-          >
-            <motion.svg
-              className="w-6 h-6 text-jade-glow"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              animate={{ rotate: mobileSidebarOpen ? 90 : 0 }}
-              transition={{ duration: 0.3 }}
+          {/* ── Centre FAB — Side Panel Toggle ── */}
+          <div className="relative flex flex-col items-center -mt-4 z-10">
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onClick={handleFABPress}
+              className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-colors ${
+                mobileSidebarOpen
+                  ? "bg-jade-glow shadow-jade-glow/40"
+                  : "bg-gradient-to-br from-jade-deep to-jade-glow/80 shadow-jade-glow/20"
+              }`}
+              style={{
+                boxShadow: mobileSidebarOpen
+                  ? '0 4px 20px rgba(52,211,153,0.5), 0 0 40px rgba(52,211,153,0.15)'
+                  : '0 4px 16px rgba(52,211,153,0.3), 0 0 30px rgba(52,211,153,0.1)',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-            </motion.svg>
-          </motion.button>
+              <motion.svg
+                animate={{ rotate: mobileSidebarOpen ? 45 : 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`w-6 h-6 ${mobileSidebarOpen ? "text-ink-deep" : "text-cloud-white"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.2}
+              >
+                {mobileSidebarOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h10M4 18h16" />
+                )}
+              </motion.svg>
+            </motion.button>
+            <span className={`text-[9px] font-semibold mt-0.5 tracking-wide ${mobileSidebarOpen ? "text-jade-glow" : "text-mist-dark"}`}>
+              Menu
+            </span>
+          </div>
 
-          {/* Third nav item */}
+          {/* Right nav item (3rd primary) */}
           {primaryItems.slice(2, 3).map((item) => {
             const isActive = pathname === item.path;
             return (
               <motion.button
                 key={item.id}
-                whileTap={{ scale: 0.85 }}
-                animate={{
-                  scale: isActive ? 1.15 : 1,
-                  y: isActive ? -2 : 0,
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  duration: 0.25,
-                }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => router.push(item.path)}
-                className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
-                    : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
+                className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
+                  isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
                 }`}
-                style={{
-                  willChange: 'transform',
-                  transform: isActive ? 'translateZ(0)' : undefined,
-                  boxShadow: isActive ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
-                }}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <motion.span 
-                  className="text-xl"
-                  animate={{ rotate: isActive ? [0, -10, 10, -5, 5, 0] : 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {item.icon}
-                </motion.span>
-                <span className={`text-[10px] font-semibold tracking-wide ${
-                  isActive ? "text-jade-glow" : ""
-                }`}>
+                <div className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
+                  {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
+                </div>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
                   {item.label.split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
-                    layoutId="bottomBarIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
-                    style={{
-                      boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
-                    }}
+                    layoutId="bottomBarActiveTab"
+                    className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
+                    style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
               </motion.button>
             );
           })}
 
-          {/* Hamburger menu button */}
+          {/* More / Hamburger button */}
           <motion.button
-            whileTap={{ scale: 0.85 }}
-            animate={{
-              scale: menuOpen ? 1.15 : 1,
-              y: menuOpen ? -2 : 0,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-              duration: 0.25,
-            }}
-            onClick={() => setMenuOpen(!menuOpen)}
-            className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
-              menuOpen
-                ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
-                : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
+            whileTap={{ scale: 0.9 }}
+            onClick={handleMenuToggle}
+            className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
+              menuOpen ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
             }`}
-            style={{
-              willChange: 'transform',
-              transform: menuOpen ? 'translateZ(0)' : undefined,
-              boxShadow: menuOpen ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
-            }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <motion.span 
-              className="text-xl"
-              animate={{ rotate: menuOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+            <motion.div
+              animate={{ rotate: menuOpen ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none" />
               </svg>
-            </motion.span>
-            <span className={`text-[10px] font-semibold tracking-wide ${
-              menuOpen ? "text-jade-glow" : ""
-            }`}>
+            </motion.div>
+            <span className={`text-[10px] font-medium tracking-wide ${menuOpen ? "text-jade-glow" : ""}`}>
               More
             </span>
             {menuOpen && (
               <motion.div
-                layoutId="bottomBarIndicator"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
-                style={{
-                  boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
-                }}
+                layoutId="bottomBarActiveTab"
+                className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
+                style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
           </motion.button>
-        </div>
+        </nav>
       </div>
     </>
   );

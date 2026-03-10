@@ -59,14 +59,14 @@ RUN npm install --no-save prisma@7.4.1 @prisma/adapter-libsql @libsql/client bcr
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat wget
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy public assets
 COPY --from=builder /app/public ./public
@@ -100,6 +100,9 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/checkins || exit 1
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

@@ -7,11 +7,14 @@ import PresetSlots from "@/components/ui/PresetSlots";
 import { memo } from "react";
 
 function RightPanel() {
-  const { collapsed, isMobile } = useAppContext();
+  const { collapsed, isMobile, isNativeApp } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const visible = settings.rightPanelVisible;
 
-  // On mobile, hide completely
+  // On mobile native, the Quick View panel is handled by PageLayout slide-in
+  if (isMobile && isNativeApp) return null;
+
+  // On mobile browser, hide completely
   if (isMobile) return null;
 
   // Hide when nav collapsed on desktop (no room)

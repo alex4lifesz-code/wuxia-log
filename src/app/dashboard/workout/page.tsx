@@ -20,13 +20,14 @@ interface Exercise {
 }
 
 export default function TrainingGrounds() {
-  const { isMobile } = useAppContext();
+  const { isMobile, isNativeApp, setMobileSidebarOpen } = useAppContext();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [exerciseOrder, setExerciseOrder] = useState<string[]>([]);
   const [isLoadingExercises, setIsLoadingExercises] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
 
   // Load exercises on mount
   useEffect(() => {
@@ -228,6 +229,89 @@ export default function TrainingGrounds() {
         onUpdateDayAssignments={handleUpdateDayAssignments}
         onReorderExercises={handleReorderExercises}
       />
+
+      {/* Contextual FAB — Training Grounds only, mobile native APK */}
+      {isMobile && isNativeApp && (
+        <>
+          {/* Backdrop when FAB menu is open */}
+          <AnimatePresence>
+            {fabOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40 bg-void-black/40"
+                onClick={() => setFabOpen(false)}
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3">
+            {/* FAB action items */}
+            <AnimatePresence>
+              {fabOpen && (
+                <>
+                  <motion.button
+                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                    transition={{ delay: 0.1 }}
+                    onClick={() => {
+                      setMobileSidebarOpen(true);
+                      setFabOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-ink-dark border border-jade-glow/40 shadow-lg shadow-jade-glow/20"
+                  >
+                    <span className="text-xs text-cloud-white font-medium whitespace-nowrap">Select Techniques</span>
+                    <svg className="w-4 h-4 text-jade-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                    transition={{ delay: 0.05 }}
+                    onClick={() => {
+                      setIsDrawerOpen(true);
+                      setFabOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-ink-dark border border-jade-glow/40 shadow-lg shadow-jade-glow/20"
+                  >
+                    <span className="text-xs text-cloud-white font-medium whitespace-nowrap">Manage Techniques</span>
+                    <svg className="w-4 h-4 text-jade-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </motion.button>
+                </>
+              )}
+            </AnimatePresence>
+
+            {/* Main FAB button */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setFabOpen(!fabOpen)}
+              className="w-14 h-14 rounded-full bg-gradient-to-br from-jade-deep to-jade-glow flex items-center justify-center shadow-xl"
+              style={{
+                boxShadow: '0 4px 14px rgba(52, 211, 153, 0.4), 0 2px 6px rgba(0,0,0,0.3)',
+              }}
+            >
+              <motion.svg
+                className="w-7 h-7 text-ink-deep"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+                animate={{ rotate: fabOpen ? 45 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </motion.svg>
+            </motion.button>
+          </div>
+        </>
+      )}
     </PageLayout>
   );
 }

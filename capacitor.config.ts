@@ -1,19 +1,29 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+const SERVER_URL = process.env.CAPACITOR_SERVER_URL || "http://192.168.1.116:3000";
+
 const config: CapacitorConfig = {
   appId: "com.wuxia.cultivation",
   appName: "Cultivation Workout",
   webDir: "www",
   server: {
-    // Points the WebView to the production server.
-    // Change this URL to match your deployment address.
-    url: "http://192.168.1.116:3000",
-    cleartext: true, // Allow HTTP (non-HTTPS) connections
+    url: SERVER_URL,
+    cleartext: true,
+    errorPath: "error.html",
   },
   android: {
-    // Allow mixed content (HTTP images/resources on HTTPS pages)
     allowMixedContent: true,
-    backgroundColor: "#000000",
+    backgroundColor: "#0d0f14",
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+  },
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: true,
+      launchShowDuration: 1500,
+      backgroundColor: "#0d0f14",
+      showSpinner: false,
+    },
   },
 };
 

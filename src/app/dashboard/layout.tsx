@@ -9,6 +9,7 @@ import TopBar from "@/components/navigation/TopBar";
 import LeftSidebar from "@/components/navigation/LeftSidebar";
 import RightPanel from "@/components/navigation/RightPanel";
 import BottomBar from "@/components/navigation/BottomBar";
+import FloatingMobileSidebar from "@/components/navigation/FloatingMobileSidebar";
 
 export default function DashboardLayout({
   children,
@@ -18,14 +19,12 @@ export default function DashboardLayout({
   const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // Redirect to login if not authenticated after hydration
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace("/");
     }
   }, [isLoading, isAuthenticated, router]);
 
-  // Block render until auth state is hydrated
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-void-black">
@@ -46,6 +45,7 @@ export default function DashboardLayout({
             <div className="flex-1 overflow-auto">{children}</div>
             <RightPanel />
           </div>
+          <FloatingMobileSidebar />
           <BottomBar />
         </div>
       </DisplaySettingsProvider>

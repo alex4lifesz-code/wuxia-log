@@ -1,20 +1,28 @@
 # ============================================
-# Wuxia Cultivation Tracker — Docker Compose
-# Production-grade deployment for Portainer
+# Wuxia Cultivation Tracker — Portainer Stack
+# Production deployment with Portainer agent
+# ============================================
+#
+# Deploy via Portainer UI:
+#   Stacks → Add Stack → Upload or paste this file
+#   Set environment variables in the Portainer UI
+#
+# Required environment variables (set in Portainer):
+#   APP_PORT       — Host port for the application (default: 3000)
+#   APP_VERSION    — Image tag / version label (default: 2.0.0)
 # ============================================
 
 services:
+  # ── Application ──────────────────────────────
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: wuxia-cultivation-tracker:${APP_VERSION:-latest}
+    image: wuxia-cultivation-tracker:${APP_VERSION:-2.0.0}
     container_name: wuxia-cultivation-tracker
     restart: always
     ports:
       - "${APP_PORT:-3000}:3000"
-    env_file:
-      - .env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/data/cultivation.db
@@ -24,7 +32,7 @@ services:
     tmpfs:
       - /tmp:noexec,nosuid,size=64M
     networks:
-      - wuxia_network
+      - wuxia_internal
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/checkins"]
       interval: 30s
@@ -59,6 +67,39 @@ services:
       com.centurylabs.version: "${APP_VERSION:-2.0.0}"
       com.centurylabs.maintainer: "Century Labs"
       com.centurylabs.environment: "production"
+      # Portainer metadata
+      io.portainer.accesscontrol.teams: "developers"
+
+  # ── Portainer Agent ──────────────────────────
+  portainer-agent:
+    image: portainer/agent:2.24.1
+    container_name: wuxia-portainer-agent
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/volumes:/var/lib/docker/volumes:ro
+    ports:
+      - "9001:9001"
+    networks:
+      - wuxia_internal
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          cpus: "0.1"
+          memory: 32M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+    labels:
+      com.centurylabs.description: "Portainer Agent for container management"
+      com.centurylabs.environment: "production"
 
 volumes:
   wuxia_data:
@@ -68,9 +109,9 @@ volumes:
       com.centurylabs.description: "Persistent SQLite database storage"
 
 networks:
-  wuxia_network:
+  wuxia_internal:
     driver: bridge
-    name: wuxia_network
+    name: wuxia_internal
     driver_opts:
       com.docker.network.bridge.enable_icc: "false"
     labels:

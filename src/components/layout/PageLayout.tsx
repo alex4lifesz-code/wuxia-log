@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ReactNode, useState, useEffect, useCallback, useRef } from "react";
+import { ReactNode, useState, useEffect, useCallback, useRef, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 
@@ -10,11 +10,10 @@ interface PageLayoutProps {
   sidebar?: ReactNode;
   title: string;
   subtitle?: string;
-  /** Label for the sidebar in the mobile panel hub, e.g. "Techniques" */
   sidebarLabel?: string;
 }
 
-export default function PageLayout({
+function PageLayout({
   children,
   sidebar,
   title,
@@ -67,7 +66,7 @@ export default function PageLayout({
     };
   }, [isResizing, sidebarPosition, updateSettings]);
 
-  // Close mobile sidebar on escape
+  // Close mobile panels on escape
   useEffect(() => {
     if (!mobileSidebarOpen && !mobileQuickViewOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -80,7 +79,7 @@ export default function PageLayout({
     return () => document.removeEventListener("keydown", onKey);
   }, [mobileSidebarOpen, mobileQuickViewOpen]);
 
-  // Lock body scroll when mobile sidebar open
+  // Lock body scroll when mobile panels open
   useEffect(() => {
     if (mobileSidebarOpen || mobileQuickViewOpen) {
       document.body.style.overflow = "hidden";
@@ -108,7 +107,6 @@ export default function PageLayout({
       title="Drag to resize"
     >
       <div className={`absolute inset-y-0 ${sidebarPosition === "left" ? "-right-0.5 left-0" : "right-0 -left-0.5"} w-2`} />
-      {/* Grip indicator */}
       <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-60 transition-opacity">
         <div className="w-0.5 h-0.5 rounded-full bg-mist-dark" />
         <div className="w-0.5 h-0.5 rounded-full bg-mist-dark" />
@@ -132,7 +130,6 @@ export default function PageLayout({
     >
       <div className="px-5 pt-4 pb-2.5 shrink-0 flex items-center justify-between">
         <h2 className="text-xs text-jade-glow uppercase tracking-widest font-semibold">{title}</h2>
-        {/* Quick layout toggle — flip sidebar position */}
         <button
           onClick={() => updateSettings({ sidebarPosition: sidebarPosition === "left" ? "right" : "left" })}
           className="p-1 rounded-md border border-ink-light/50 text-mist-dark hover:text-jade-glow hover:border-jade-glow/40 hover:bg-jade-deep/20 transition-all duration-200"
@@ -180,7 +177,7 @@ export default function PageLayout({
       {sidebarPosition === "left" && resizeHandle}
 
       {/* Main Content — full width on mobile */}
-      <div className={`flex-1 overflow-y-auto ${isMobile ? "p-4 pb-20" : "p-6"}`}>
+      <div className={`flex-1 overflow-y-auto ${isMobile ? "p-4 pb-24" : "p-6"}`}>
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -197,45 +194,72 @@ export default function PageLayout({
       {sidebarPosition === "right" && resizeHandle}
       {sidebarPosition === "right" && desktopSidebar}
 
-      {/* Mobile Quick View button — top-right corner (native APK only) */}
+      {/* Mobile action buttons — top-right (native APK only) */}
       {isMobile && isNativeApp && (
         <div
-          className="fixed top-14 right-3 z-60 flex flex-col items-center gap-2"
+          className="fixed top-3 right-3 z-60 flex items-center gap-2"
           style={{ zIndex: 60 }}
         >
+          {/* Page sidebar toggle */}
+          {sidebar && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                if (mobileQuickViewOpen) setMobileQuickViewOpen(false);
+                setMobileSidebarOpen(!mobileSidebarOpen);
+              }}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg backdrop-blur-md transition-colors min-w-[44px] min-h-[44px] ${
+                mobileSidebarOpen
+                  ? "bg-jade-deep/90 border border-jade-glow/50 shadow-jade-glow/20"
+                  : "bg-ink-dark/80 border border-ink-light/40"
+              }`}
+              title={sidebarLabel || "Panel"}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <svg className={`w-4.5 h-4.5 transition-colors ${mobileSidebarOpen ? "text-jade-glow" : "text-mist-light"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </motion.button>
+          )}
+          {/* Quick View toggle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               if (mobileSidebarOpen) setMobileSidebarOpen(false);
-              setMobileQuickViewOpen(true);
+              setMobileQuickViewOpen(!mobileQuickViewOpen);
             }}
-            className="w-9 h-9 rounded-full bg-ink-dark/90 border border-gold/30 flex items-center justify-center shadow-md backdrop-blur-sm"
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg backdrop-blur-md transition-colors min-w-[44px] min-h-[44px] ${
+              mobileQuickViewOpen
+                ? "bg-gold/20 border border-gold/50 shadow-gold/10"
+                : "bg-ink-dark/80 border border-ink-light/40"
+            }`}
             title="Quick View"
-            style={{ willChange: 'transform' }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4.5 h-4.5 transition-colors ${mobileQuickViewOpen ? "text-gold" : "text-mist-light"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
             </svg>
           </motion.button>
+          {/* Stats toggle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setTopPanelExpanded(!topPanelExpanded)}
-            className={`w-9 h-9 rounded-full border flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 ${
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg backdrop-blur-md transition-colors min-w-[44px] min-h-[44px] ${
               topPanelExpanded
-                ? "bg-jade-deep/90 border-jade-glow/60 shadow-jade-glow/30"
-                : "bg-ink-dark/90 border-jade-glow/30"
+                ? "bg-jade-deep/90 border border-jade-glow/50 shadow-jade-glow/20"
+                : "bg-ink-dark/80 border border-ink-light/40"
             }`}
             title="Cultivation Stats"
-            style={{ willChange: 'transform' }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <svg className={`w-4 h-4 transition-colors duration-200 ${topPanelExpanded ? "text-jade-glow" : "text-jade-light"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4.5 h-4.5 transition-colors ${topPanelExpanded ? "text-jade-glow" : "text-mist-light"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </motion.button>
         </div>
       )}
 
-      {/* Mobile slide-in sidebar (page panel) — native APK only */}
+      {/* ── Mobile slide-in sidebar (page panel) — native APK only ── */}
       <AnimatePresence>
         {mobileSidebarOpen && isMobile && isNativeApp && sidebar && (
           <>
@@ -244,8 +268,8 @@ export default function PageLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/50"
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-40 bg-void-black/60 backdrop-blur-[2px]"
               onClick={() => setMobileSidebarOpen(false)}
             />
             <motion.div
@@ -253,23 +277,24 @@ export default function PageLayout({
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[340px] bg-ink-deep border-r border-jade-glow/20 flex flex-col shadow-2xl"
+              transition={{ type: "spring", damping: 28, stiffness: 300, mass: 0.8 }}
+              className="fixed inset-y-0 left-0 z-50 bg-ink-deep/98 backdrop-blur-lg border-r border-jade-glow/10 flex flex-col shadow-2xl"
+              style={{ width: "min(85vw, 340px)" }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-ink-light shrink-0">
-                <h2 className="text-sm text-jade-glow font-semibold uppercase tracking-wider">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-ink-light/50 shrink-0">
+                <h2 className="text-sm text-jade-glow font-semibold uppercase tracking-[0.12em]">
                   {sidebarLabel || title}
                 </h2>
                 <button
                   onClick={() => setMobileSidebarOpen(false)}
-                  className="p-1.5 rounded-md text-mist-dark hover:text-cloud-white hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-xl text-mist-dark active:text-cloud-white active:bg-white/10 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 sidebar-scroll">
+              <div className="flex-1 overflow-y-auto p-4 sidebar-scroll overscroll-contain">
                 {sidebar}
               </div>
             </motion.div>
@@ -277,7 +302,7 @@ export default function PageLayout({
         )}
       </AnimatePresence>
 
-      {/* Mobile slide-in Quick View panel */}
+      {/* ── Mobile slide-in Quick View (right panel) ── */}
       <AnimatePresence>
         {mobileQuickViewOpen && isMobile && isNativeApp && (
           <>
@@ -286,8 +311,8 @@ export default function PageLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/50"
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-40 bg-void-black/60 backdrop-blur-[2px]"
               onClick={() => setMobileQuickViewOpen(false)}
             />
             <motion.div
@@ -295,53 +320,54 @@ export default function PageLayout({
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[320px] bg-ink-deep border-l border-gold/20 flex flex-col shadow-2xl"
+              transition={{ type: "spring", damping: 28, stiffness: 300, mass: 0.8 }}
+              className="fixed inset-y-0 right-0 z-50 bg-ink-deep/98 backdrop-blur-lg border-l border-gold/10 flex flex-col shadow-2xl"
+              style={{ width: "min(85vw, 320px)" }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-ink-light shrink-0">
-                <h2 className="text-sm text-gold font-semibold uppercase tracking-wider">Quick View</h2>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-ink-light/50 shrink-0">
+                <h2 className="text-sm text-gold font-semibold uppercase tracking-[0.12em]">Quick View</h2>
                 <button
                   onClick={() => setMobileQuickViewOpen(false)}
-                  className="p-1.5 rounded-md text-mist-dark hover:text-cloud-white hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-xl text-mist-dark active:text-cloud-white active:bg-white/10 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain">
                 {/* Today's Cultivation */}
-                <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-jade-glow mb-2">Today&apos;s Cultivation</h3>
+                <div className="rounded-xl p-3.5 bg-ink-mid/60 border border-ink-light/30">
+                  <h3 className="text-xs text-jade-glow mb-2 font-medium">Today&apos;s Cultivation</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-mist-light">Sessions</span>
-                      <span className="text-cloud-white">0</span>
+                      <span className="text-cloud-white font-medium">0</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-mist-light">Exercises</span>
-                      <span className="text-cloud-white">0</span>
+                      <span className="text-cloud-white font-medium">0</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-mist-light">Duration</span>
-                      <span className="text-cloud-white">0 min</span>
+                      <span className="text-cloud-white font-medium">0 min</span>
                     </div>
                   </div>
                 </div>
                 {/* Cultivation Realm */}
-                <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-gold mb-2">Cultivation Realm</h3>
+                <div className="rounded-xl p-3.5 bg-ink-mid/60 border border-ink-light/30">
+                  <h3 className="text-xs text-gold mb-2 font-medium">Cultivation Realm</h3>
                   <div className="text-center py-2">
-                    <span className="text-lg text-gold-glow animate-glow-pulse">Mortal</span>
-                    <div className="mt-2 w-full bg-ink-mid rounded-full h-1.5">
-                      <div className="bg-jade-glow h-1.5 rounded-full" style={{ width: "10%" }} />
+                    <span className="text-lg text-gold-glow">Mortal</span>
+                    <div className="mt-2 w-full bg-ink-dark rounded-full h-1.5">
+                      <div className="bg-jade-glow h-1.5 rounded-full transition-all" style={{ width: "10%" }} />
                     </div>
                     <p className="text-[10px] text-mist-dark mt-1">10% to Foundation Establishment</p>
                   </div>
                 </div>
                 {/* Recent Activity */}
-                <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-mountain-blue-glow mb-2">Recent Activity</h3>
+                <div className="rounded-xl p-3.5 bg-ink-mid/60 border border-ink-light/30">
+                  <h3 className="text-xs text-mountain-blue-glow mb-2 font-medium">Recent Activity</h3>
                   <p className="text-xs text-mist-dark italic">No recent cultivation records</p>
                 </div>
               </div>
@@ -352,3 +378,5 @@ export default function PageLayout({
     </motion.div>
   );
 }
+
+export default memo(PageLayout);
