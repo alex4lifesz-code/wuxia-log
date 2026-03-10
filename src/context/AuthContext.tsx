@@ -37,15 +37,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(parsedUser);
         }
       } catch {
-        // Corrupted data — clear everything
-        await clearPersistedUser();
+        // Corrupted data — clear without blocking the finally block
+        clearPersistedUser().catch(() => {});
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
 
-    hydrate();
-    return () => { cancelled = true; };
+    // Hard timeout: if hydration hasn't completed in 5 s, force-finish
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        cancelled = true;
+        clearPersistedUser().catch(() => {});
+        setIsLoading(false);
+      }
+    }, 5000);
+
+    hydrate().finally(() => clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, []);
 
   const login = useCallback((userData: User, rememberMe = false) => {

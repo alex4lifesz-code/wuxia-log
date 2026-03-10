@@ -10,9 +10,21 @@ import { isNativePlatform } from "./platform";
 
 const REMEMBER_FLAG = "cultivation-remember";
 
+const STORAGE_TIMEOUT_MS = 3000;
+
 async function getPreferences() {
   const { Preferences } = await import("@capacitor/preferences");
   return Preferences;
+}
+
+/** Race a promise against a timeout. Rejects if the timeout fires first. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Storage timeout")), ms)
+    ),
+  ]);
 }
 
 /** Read a persisted value (Remember Me). */
@@ -20,8 +32,11 @@ export async function getPersistedUser(): Promise<string | null> {
   // Native: prefer Capacitor Preferences for reliability
   if (typeof window !== "undefined" && isNativePlatform()) {
     try {
-      const Prefs = await getPreferences();
-      const { value } = await Prefs.get({ key: "cultivation-user" });
+      const Prefs = await withTimeout(getPreferences(), STORAGE_TIMEOUT_MS);
+      const { value } = await withTimeout(
+        Prefs.get({ key: "cultivation-user" }),
+        STORAGE_TIMEOUT_MS
+      );
       if (value) return value;
     } catch {
       // fall through to web storage
@@ -52,9 +67,9 @@ export async function persistUser(
     // Native: also write to Capacitor Preferences for reliability
     if (isNativePlatform()) {
       try {
-        const Prefs = await getPreferences();
-        await Prefs.set({ key: "cultivation-user", value: json });
-        await Prefs.set({ key: REMEMBER_FLAG, value: "1" });
+        const Prefs = await withTimeout(getPreferences(), STORAGE_TIMEOUT_MS);
+        await withTimeout(Prefs.set({ key: "cultivation-user", value: json }), STORAGE_TIMEOUT_MS);
+        await withTimeout(Prefs.set({ key: REMEMBER_FLAG, value: "1" }), STORAGE_TIMEOUT_MS);
       } catch {
         // localStorage write already succeeded
       }
@@ -66,9 +81,9 @@ export async function persistUser(
 
     if (isNativePlatform()) {
       try {
-        const Prefs = await getPreferences();
-        await Prefs.remove({ key: "cultivation-user" });
-        await Prefs.remove({ key: REMEMBER_FLAG });
+        const Prefs = await withTimeout(getPreferences(), STORAGE_TIMEOUT_MS);
+        await withTimeout(Prefs.remove({ key: "cultivation-user" }), STORAGE_TIMEOUT_MS);
+        await withTimeout(Prefs.remove({ key: REMEMBER_FLAG }), STORAGE_TIMEOUT_MS);
       } catch {
         // no-op
       }
@@ -86,11 +101,17 @@ export async function clearPersistedUser(): Promise<void> {
 
   if (isNativePlatform()) {
     try {
-      const Prefs = await getPreferences();
-      await Prefs.remove({ key: "cultivation-user" });
-      await Prefs.remove({ key: REMEMBER_FLAG });
+      const Prefs = await withTimeout(getPreferences(), STORAGE_TIMEOUT_MS);
+      await withTimeout(
+        Prefs.remove({ key: "cultivation-user" }),
+        STORAGE_TIMEOUT_MS
+      );
+      await withTimeout(
+        Prefs.remove({ key: REMEMBER_FLAG }),
+        STORAGE_TIMEOUT_MS
+      );
     } catch {
-      // no-op
+      // no-op — web storage already cleared above
     }
   }
 }
