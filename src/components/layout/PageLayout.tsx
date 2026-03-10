@@ -20,9 +20,10 @@ function PageLayout({
   subtitle,
   sidebarLabel,
 }: PageLayoutProps) {
-  const { panelPosition, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen, topPanelExpanded, setTopPanelExpanded } = useAppContext();
+  const { panelPosition, isMobile, isNativeApp, viewportMode, mobileSidebarOpen, setMobileSidebarOpen, topPanelExpanded, setTopPanelExpanded } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const effectivePosition = isMobile ? "top" : panelPosition;
+  const mobileMode = isMobile && (isNativeApp || viewportMode === "mobile");
   const [mobileQuickViewOpen, setMobileQuickViewOpen] = useState(false);
   const sidebarPosition = settings.sidebarPosition || "left";
   const sidebarWidth = settings.sidebarWidth || 320;
@@ -194,8 +195,8 @@ function PageLayout({
       {sidebarPosition === "right" && resizeHandle}
       {sidebarPosition === "right" && desktopSidebar}
 
-      {/* Mobile action buttons — top-right (native APK only) */}
-      {isMobile && isNativeApp && (
+      {/* Mobile action buttons — top-right */}
+      {mobileMode && (
         <div
           className="fixed top-3 right-3 z-60 flex items-center gap-2"
           style={{ zIndex: 60 }}
@@ -240,7 +241,7 @@ function PageLayout({
 
       {/* ── Mobile slide-in sidebar (page panel) — native APK only ── */}
       <AnimatePresence>
-        {mobileSidebarOpen && isMobile && isNativeApp && sidebar && (
+        {mobileSidebarOpen && mobileMode && sidebar && (
           <>
             <motion.div
               key="page-sidebar-backdrop"
@@ -283,7 +284,7 @@ function PageLayout({
 
       {/* ── Mobile slide-in Quick View (right panel) ── */}
       <AnimatePresence>
-        {mobileQuickViewOpen && isMobile && isNativeApp && (
+        {mobileQuickViewOpen && mobileMode && (
           <>
             <motion.div
               key="quickview-backdrop"

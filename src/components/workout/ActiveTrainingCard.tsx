@@ -315,16 +315,17 @@ export default function ActiveTrainingCard({
               </div>
 
               {/* Top-right actions */}
-              <div className={`flex items-center ${isCompact ? 'gap-0.5' : 'gap-1'} shrink-0`}>
+              <div className={`flex items-center ${isCompact ? 'gap-0.5' : 'gap-1.5'} shrink-0`}>
                 {!isCompact && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleHistoryToggle(); }}
-                    className="p-0.5 rounded-full text-mist-dark hover:text-jade-glow hover:bg-jade-deep/20 transition-all duration-200 shrink-0"
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-jade-deep/15 border border-jade-glow/20 text-jade-glow/70 hover:text-jade-glow hover:bg-jade-deep/30 hover:border-jade-glow/40 transition-all duration-200 shrink-0"
                     title="View training history"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
+                    <span className="text-[9px] font-medium">History</span>
                   </button>
                 )}
                 {!isCompact && !notesAlwaysVisible && !effectiveMobile && (
@@ -506,12 +507,13 @@ export default function ActiveTrainingCard({
                 {!isCompact && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleHistoryToggle(); }}
-                    className="p-0.5 rounded-full text-mist-dark hover:text-jade-glow hover:bg-jade-deep/20 transition-all duration-200 shrink-0"
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-jade-deep/15 border border-jade-glow/20 text-jade-glow/70 hover:text-jade-glow hover:bg-jade-deep/30 hover:border-jade-glow/40 transition-all duration-200 shrink-0"
                     title="View training history"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
+                    <span className="text-[9px] font-medium">History</span>
                   </button>
                 )}
               </div>

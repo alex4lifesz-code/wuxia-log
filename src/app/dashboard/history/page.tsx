@@ -7,10 +7,11 @@ import GlowCard from "@/components/ui/GlowCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { formatDateWithPreference } from "@/lib/constants";
+import ExerciseHistoryModal from "@/components/workout/ExerciseHistoryModal";
 
 interface WorkoutExercise {
   id: string;
-  exercise: { name: string; difficulty: string };
+  exercise: { id: string; name: string; difficulty: string };
   sets?: number;
   reps?: number;
   weight?: number;
@@ -123,6 +124,7 @@ export default function HistoryPage() {
   const [allCheckIns, setAllCheckIns] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [currentCheckIn, setCurrentCheckIn] = useState<{ present: boolean; weight: string }>({ present: false, weight: "" });
+  const [historyModal, setHistoryModal] = useState<{ exerciseId: string; exerciseName: string } | null>(null);
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -798,7 +800,8 @@ export default function HistoryPage() {
                                   ].map((ex) => (
                                     <div
                                       key={ex.id}
-                                      className="flex items-center justify-between text-xs bg-ink-dark/50 px-3 py-2 rounded border border-ink-light/30"
+                                      className="flex items-center justify-between text-xs bg-ink-dark/50 px-3 py-2 rounded border border-ink-light/30 cursor-pointer hover:border-jade-glow/30 hover:bg-jade-deep/10 transition-all"
+                                      onClick={() => setHistoryModal({ exerciseId: ex.exercise.id || ex.id, exerciseName: ex.exercise.name })}
                                     >
                                       <span className="text-jade-light font-medium">{ex.exercise.name}</span>
                                       <div className="flex items-center gap-3 text-mist-mid flex-wrap">
@@ -897,11 +900,9 @@ export default function HistoryPage() {
                         return (
                           <div
                             key={ex.id}
-                            className="text-xs bg-ink-dark px-2 py-1 rounded text-cloud-white flex items-center gap-1"
-                            title={ex.mode === "simplified" 
-                              ? `Sets: ${ex.sets}, Reps: ${ex.reps}, Weight: ${displayWeight}`
-                              : `Set 1: ${ex.weight1}kg × ${ex.reps1}, Set 2: ${ex.weight2}kg × ${ex.reps2}, Set 3: ${ex.weight3}kg × ${ex.reps3}`
-                            }
+                            className="text-xs bg-ink-dark px-2 py-1 rounded text-cloud-white flex items-center gap-1 cursor-pointer hover:bg-jade-deep/20 hover:ring-1 hover:ring-jade-glow/30 transition-all"
+                            title={`Tap to view history for ${ex.exercise.name}`}
+                            onClick={() => setHistoryModal({ exerciseId: ex.exercise.id || ex.id, exerciseName: ex.exercise.name })}
                           >
                             <span>{ex.exercise.name}</span>
                             <span className={`text-[9px] px-1 py-0.5 rounded ${
@@ -929,6 +930,15 @@ export default function HistoryPage() {
           })}
           </div>
         </div>
+      )}
+      {/* Exercise History Modal */}
+      {historyModal && (
+        <ExerciseHistoryModal
+          exerciseId={historyModal.exerciseId}
+          exerciseName={historyModal.exerciseName}
+          isOpen={true}
+          onClose={() => setHistoryModal(null)}
+        />
       )}
     </PageLayout>
   );

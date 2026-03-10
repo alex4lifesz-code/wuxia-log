@@ -104,11 +104,23 @@ function TopBar() {
         <AnimatePresence>
           {topPanelExpanded && (
             <motion.div
+              key="stats-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-30"
+              onClick={() => setTopPanelExpanded(false)}
+            />
+          )}
+          {topPanelExpanded && (
+            <motion.div
+              key="stats-panel"
               initial={{ y: -200, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -200, opacity: 0 }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="bg-ink-deep/98 backdrop-blur-lg border-b border-jade-glow/10 p-4 z-40"
+              className="bg-ink-deep/98 backdrop-blur-lg border-b border-jade-glow/10 p-4 z-40 relative"
             >
               <div className="flex justify-between items-center mb-3">
                 <span className="text-jade-glow text-sm font-bold tracking-wider flex items-center gap-1.5">

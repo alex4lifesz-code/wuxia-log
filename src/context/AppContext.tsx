@@ -159,13 +159,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Handle responsive layout changes (fixes bidirectional bug)
-  // In browser (non-native) mode, always force desktop regardless of screen size.
+  // Explicit viewport overrides are honoured on all platforms (browser + native).
+  // In auto mode, browsers default to desktop; native APK responds to screen size.
   useEffect(() => {
     const checkSize = () => {
       const windowWidth = window.innerWidth;
       const actualIsMobileNow = windowWidth < 768;
 
-      // ---------- BROWSER MODE: always desktop ----------
+      // ---------- EXPLICIT VIEWPORT OVERRIDES (any platform) ----------
+      if (viewportMode === "mobile") {
+        setIsMobile(true);
+        setCollapsed(true);
+        setPanelPosition("top");
+        setTopPanelExpandedState(false);
+        return;
+      }
+
+      if (viewportMode === "desktop") {
+        setIsMobile(false);
+        setCollapsed(false);
+        if (navigationMode === "side") {
+          setPanelPosition("left");
+        } else {
+          setPanelPosition("top");
+        }
+        setTopPanelExpandedState(true);
+        return;
+      }
+
+      // ---------- AUTO MODE: browser defaults to desktop ----------
       if (!isNativeApp) {
         setIsMobile(false);
         setCollapsed(false);
@@ -178,35 +200,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // ---------- NATIVE APK: honour viewport overrides ----------
-      // If forcing a specific viewport mode, override the actual size
-      if (viewportMode === "mobile") {
-        setIsMobile(true);
+      // ---------- AUTO MODE: native APK responds to screen size ----------
+      setIsMobile(actualIsMobileNow);
+
+      if (actualIsMobileNow) {
         setCollapsed(true);
         setPanelPosition("top");
         setTopPanelExpandedState(false);
-      } else if (viewportMode === "desktop") {
-        setIsMobile(false);
+      } else {
         setCollapsed(false);
+        setTopPanelExpandedState(true);
         if (navigationMode === "side") {
           setPanelPosition("left");
-        }
-      } else {
-        // Auto mode: apply responsive adjustments based on actual window size
-        setIsMobile(actualIsMobileNow);
-        
-        if (actualIsMobileNow) {
-          setCollapsed(true);
-          setPanelPosition("top");
-          setTopPanelExpandedState(false);
         } else {
-          setCollapsed(false);
-          setTopPanelExpandedState(true);
-          if (navigationMode === "side") {
-            setPanelPosition("left");
-          } else {
-            setPanelPosition("top");
-          }
+          setPanelPosition("top");
         }
       }
     };

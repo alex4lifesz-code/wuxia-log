@@ -9,6 +9,7 @@ import { getDifficultyColorClass, getDifficultyGlowStyleScaled } from "@/lib/dif
 import { getTypeColor, formatDateWithPreference } from "@/lib/constants";
 import { useDisplaySettings, TechniqueDisplayMode } from "@/context/DisplaySettingsContext";
 import { useAppContext } from "@/context/AppContext";
+import ExerciseHistoryModal from "@/components/workout/ExerciseHistoryModal";
 // DisplaySettingsPopup moved to TopBar
 
 interface EditingExercise {
@@ -77,6 +78,7 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
   const [expandedNotes, setExpandedNotes] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ exerciseId: string; exerciseName: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [historyModal, setHistoryModal] = useState<{ exerciseId: string; exerciseName: string } | null>(null);
 
   // Compute effective compact mode: auto → compact on mobile, full on desktop
   const effectiveCompact = settings.recentSessionsCompact === "compact"
@@ -503,7 +505,8 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                     key={exercise.id}
                     initial={{ opacity: 0, y: -3 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-ink-light/40 bg-ink-dark/30 hover:bg-ink-mid/15 transition-colors"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-ink-light/40 bg-ink-dark/30 hover:bg-ink-mid/15 transition-colors cursor-pointer"
+                    onClick={() => setHistoryModal({ exerciseId: exercise.exercise.id, exerciseName: exercise.exercise.name })}
                   >
                     <span className="text-[10px] text-mist-dark shrink-0 w-14">{formatDate(session.date)}</span>
                     {settings.recentSessionsMode === "name-only" ? (
@@ -578,7 +581,11 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                           </td>
 
                           {/* EXERCISE COLUMN - Technique Identification */}
-                          <td className="px-1.5 py-1.5 align-middle whitespace-normal" style={{ minWidth: '120px', maxWidth: '260px', wordBreak: 'break-word' }}>
+                          <td
+                            className="px-1.5 py-1.5 align-middle whitespace-normal cursor-pointer hover:bg-jade-deep/10 rounded transition-colors"
+                            style={{ minWidth: '120px', maxWidth: '260px', wordBreak: 'break-word' }}
+                            onClick={() => !isEditMode && setHistoryModal({ exerciseId: exercise.exercise.id, exerciseName: exercise.exercise.name })}
+                          >
                             {settings.recentSessionsMode === "name-only" ? (
                               <span className="text-xs text-cloud-white" title={exerciseName.full}>
                                 {exerciseName.display}
@@ -922,6 +929,16 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
           </>
         )}
       </AnimatePresence>
+
+      {/* Exercise History Modal */}
+      {historyModal && (
+        <ExerciseHistoryModal
+          exerciseId={historyModal.exerciseId}
+          exerciseName={historyModal.exerciseName}
+          isOpen={true}
+          onClose={() => setHistoryModal(null)}
+        />
+      )}
     </GlowCard>
   );
 }
