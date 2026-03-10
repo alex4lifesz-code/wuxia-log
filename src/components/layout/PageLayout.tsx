@@ -134,59 +134,6 @@ export default function PageLayout({
     }
   }, [isMobile]);
 
-  // Swipe from left edge to open sidebar on mobile (native APK only)
-  useEffect(() => {
-    if (!isMobile || !sidebar || !isNativeApp) return;
-    let startX = 0;
-    let startY = 0;
-    const onTouchStart = (e: TouchEvent) => {
-      const t = e.touches[0];
-      startX = t.clientX;
-      startY = t.clientY;
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      const t = e.changedTouches[0];
-      const dx = t.clientX - startX;
-      const dy = Math.abs(t.clientY - startY);
-      if (startX < 40 && dx > 60 && dy < 80 && !mobileSidebarOpen) {
-        setMobileSidebarOpen(true);
-      }
-    };
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [isMobile, sidebar, mobileSidebarOpen, isNativeApp]);
-
-  // Swipe from right edge to open Quick View on mobile (native APK only)
-  useEffect(() => {
-    if (!isMobile || !isNativeApp) return;
-    let startX = 0;
-    let startY = 0;
-    const screenW = typeof window !== "undefined" ? window.innerWidth : 400;
-    const onTouchStart = (e: TouchEvent) => {
-      const t = e.touches[0];
-      startX = t.clientX;
-      startY = t.clientY;
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      const t = e.changedTouches[0];
-      const dx = startX - t.clientX; // swipe left = positive
-      const dy = Math.abs(t.clientY - startY);
-      if (startX > screenW - 40 && dx > 60 && dy < 80 && !mobileQuickViewOpen) {
-        setMobileQuickViewOpen(true);
-      }
-    };
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [isMobile, mobileQuickViewOpen, isNativeApp]);
-
   // Resize handle element
   const resizeHandle = sidebar && !isMobile && effectivePosition !== "top" ? (
     <div

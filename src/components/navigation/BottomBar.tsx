@@ -2,9 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
-import { useState, memo, useCallback } from "react";
+import { useState, memo } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useSwipeable } from "react-swipeable";
 
 function BottomBar() {
   const { getSortedNavItems, isMobile, viewportMode, isNativeApp } = useAppContext();
@@ -26,33 +25,6 @@ function BottomBar() {
 
   // All remaining items for the hamburger menu
   const moreItems = items.filter(i => !primaryItems.find(p => p.id === i.id));
-
-  // Swipe navigation between primary tabs
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    const currentIndex = primaryItems.findIndex(item => item.path === pathname);
-    if (currentIndex === -1) return;
-    
-    let nextIndex = currentIndex;
-    if (direction === 'left' && currentIndex < primaryItems.length - 1) {
-      nextIndex = currentIndex + 1;
-    } else if (direction === 'right' && currentIndex > 0) {
-      nextIndex = currentIndex - 1;
-    }
-    
-    if (nextIndex !== currentIndex) {
-      router.push(primaryItems[nextIndex].path);
-    }
-  }, [pathname, primaryItems, router]);
-
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleSwipe('left'),
-    onSwipedRight: () => handleSwipe('right'),
-    trackMouse: false,
-    trackTouch: true,
-    delta: 60,
-    preventScrollOnSwipe: true,
-    swipeDuration: 500,
-  });
 
   return (
     <>
@@ -143,7 +115,6 @@ function BottomBar() {
                 transition={{
                   type: "spring",
                   stiffness: 300,
-                  damping: 20,
                   duration: 0.25,
                 }}
                 onClick={() => router.push(item.path)}
