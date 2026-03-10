@@ -59,10 +59,14 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema and migrations for runtime migration support
+# Copy Prisma schema, config, migrations and generated client for runtime
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
+
+# Install prisma CLI + dependencies needed for migrations at runtime
+COPY --from=builder /app/package.json ./package.json
+RUN npm install --no-save prisma@7.4.1 @prisma/adapter-libsql @libsql/client bcryptjs
 
 # Copy seed and migration scripts
 COPY --from=builder /app/scripts ./scripts
