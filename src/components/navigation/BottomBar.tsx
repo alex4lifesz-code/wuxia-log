@@ -2,10 +2,11 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useSwipeable } from "react-swipeable";
 
-export default function BottomBar() {
+function BottomBar() {
   const { getSortedNavItems, isMobile, viewportMode, isNativeApp } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
@@ -25,6 +26,33 @@ export default function BottomBar() {
 
   // All remaining items for the hamburger menu
   const moreItems = items.filter(i => !primaryItems.find(p => p.id === i.id));
+
+  // Swipe navigation between primary tabs
+  const handleSwipe = useCallback((direction: 'left' | 'right') => {
+    const currentIndex = primaryItems.findIndex(item => item.path === pathname);
+    if (currentIndex === -1) return;
+    
+    let nextIndex = currentIndex;
+    if (direction === 'left' && currentIndex < primaryItems.length - 1) {
+      nextIndex = currentIndex + 1;
+    } else if (direction === 'right' && currentIndex > 0) {
+      nextIndex = currentIndex - 1;
+    }
+    
+    if (nextIndex !== currentIndex) {
+      router.push(primaryItems[nextIndex].path);
+    }
+  }, [pathname, primaryItems, router]);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwipe('left'),
+    onSwipedRight: () => handleSwipe('right'),
+    trackMouse: false,
+    trackTouch: true,
+    delta: 60,
+    preventScrollOnSwipe: true,
+    swipeDuration: 500,
+  });
 
   return (
     <>
@@ -87,26 +115,67 @@ export default function BottomBar() {
         </AnimatePresence>
 
         {/* Navigation bar — 3 primary items + hamburger */}
-        <div className="bg-ink-deep border-t border-ink-light flex justify-around items-center px-2 py-2 safe-area-bottom">
+        <div 
+          {...swipeHandlers}
+          className="relative bg-gradient-to-b from-ink-dark to-ink-deep border-t border-jade-glow/10 flex justify-around items-center px-2 py-3 safe-area-bottom shadow-2xl"
+          style={{
+            borderRadius: '24px 24px 0 0',
+            boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.3), 0 -2px 8px rgba(52, 211, 153, 0.1)',
+            backdropFilter: 'blur(12px)',
+            willChange: 'transform',
+          }}
+        >
+          {/* 3D curved edge effect */}
+          <div 
+            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-jade-glow/20 to-transparent"
+            style={{ transform: 'translateY(-100%)' }}
+          />
           {primaryItems.map((item) => {
             const isActive = pathname === item.path;
             return (
               <motion.button
                 key={item.id}
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.85 }}
+                animate={{
+                  scale: isActive ? 1.15 : 1,
+                  y: isActive ? -2 : 0,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                  duration: 0.25,
+                }}
                 onClick={() => router.push(item.path)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+                className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? "text-jade-light"
-                    : "text-mist-mid hover:text-mist-light"
+                    ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                    : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
                 }`}
+                style={{
+                  willChange: 'transform',
+                  transform: isActive ? 'translateZ(0)' : undefined,
+                }}
               >
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-[10px]">{item.label.split(" ")[0]}</span>
+                <motion.span 
+                  className="text-xl"
+                  animate={{ rotate: isActive ? [0, -10, 10, -5, 5, 0] : 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {item.icon}
+                </motion.span>
+                <span className={`text-[10px] font-semibold tracking-wide ${
+                  isActive ? "text-jade-glow" : ""
+                }`}>
+                  {item.label.split(" ")[0]}
+                </span>
                 {isActive && (
                   <motion.div
                     layoutId="bottomBarIndicator"
-                    className="w-4 h-0.5 bg-jade-glow rounded-full"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                    style={{
+                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                    }}
                   />
                 )}
               </motion.button>
@@ -115,24 +184,49 @@ export default function BottomBar() {
 
           {/* Hamburger menu button */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.85 }}
+            animate={{
+              scale: menuOpen ? 1.15 : 1,
+              y: menuOpen ? -2 : 0,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              duration: 0.25,
+            }}
             onClick={() => setMenuOpen(!menuOpen)}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+            className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
               menuOpen
-                ? "text-jade-light"
-                : "text-mist-mid hover:text-mist-light"
+                ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
             }`}
+            style={{
+              willChange: 'transform',
+              transform: menuOpen ? 'translateZ(0)' : undefined,
+            }}
           >
-            <span className="text-lg">
+            <motion.span 
+              className="text-xl"
+              animate={{ rotate: menuOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
+            </motion.span>
+            <span className={`text-[10px] font-semibold tracking-wide ${
+              menuOpen ? "text-jade-glow" : ""
+            }`}>
+              More
             </span>
-            <span className="text-[10px]">More</span>
             {menuOpen && (
               <motion.div
                 layoutId="bottomBarIndicator"
-                className="w-4 h-0.5 bg-jade-glow rounded-full"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                style={{
+                  boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                }}
               />
             )}
           </motion.button>
@@ -141,3 +235,5 @@ export default function BottomBar() {
     </>
   );
 }
+
+export default memo(BottomBar);

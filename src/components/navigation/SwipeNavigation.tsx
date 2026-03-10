@@ -3,6 +3,7 @@
 import { useSwipeable } from "react-swipeable";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
+import { memo } from "react";
 
 const pageOrder = [
   "/dashboard",
@@ -15,7 +16,7 @@ const pageOrder = [
   "/dashboard/settings",
 ];
 
-export default function SwipeNavigation({
+function SwipeNavigation({
   children,
 }: {
   children: React.ReactNode;
@@ -59,8 +60,10 @@ export default function SwipeNavigation({
   });
 
   return (
-    <div {...handlers} className="flex-1 overflow-auto">
+    <div {...handlers} className="flex-1 overflow-auto" style={{ willChange: 'transform' }}>
       {children}
     </div>
   );
 }
+
+export default memo(SwipeNavigation);
