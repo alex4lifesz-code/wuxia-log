@@ -51,7 +51,7 @@ services:
         tag: "wuxia-{{.Name}}"
     labels:
       com.centurylabs.description: "Wuxia Cultivation Workout Tracker"
-      com.centurylabs.version: "${APP_VERSION:-2.0.0}"
+      com.centurylabs.version: "${APP_VERSION:-2.1.0}"
       com.centurylabs.maintainer: "Century Labs"
       com.centurylabs.environment: "production"
 
