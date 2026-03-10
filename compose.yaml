@@ -20,6 +20,8 @@ services:
       - wuxia_data:/app/data
     networks:
       - wuxia_network
+    healthcheck:
+      disable: true
     deploy:
       resources:
         limits:
