@@ -30,8 +30,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=prisma /app/node_modules ./node_modules
-COPY --from=prisma /app/src/generated ./src/generated
 COPY . .
+# Copy generated Prisma client AFTER `COPY . .` so it isn't overwritten
+# (src/generated/prisma is gitignored and absent from the build context)
+COPY --from=prisma /app/src/generated ./src/generated
 
 # Set build-time environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
