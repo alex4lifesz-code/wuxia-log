@@ -31,7 +31,6 @@ function BottomBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const effectiveMobile = isMobile || viewportMode === "mobile";
-  if (!isNativeApp || !effectiveMobile) return null;
 
   const primaryItems = useMemo(() => [
     items.find(i => i.path === "/dashboard"),
@@ -56,6 +55,8 @@ function BottomBar() {
   const handleMenuToggle = useCallback(() => {
     setMenuOpen(prev => !prev);
   }, []);
+
+  if (!isNativeApp || !effectiveMobile) return null;
 
   // Build nav button order: [item0, item1, FAB, item2, More]
   return (

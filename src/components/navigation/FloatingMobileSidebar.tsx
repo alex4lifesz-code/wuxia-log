@@ -11,9 +11,6 @@ function FloatingMobileSidebar() {
   const pathname = usePathname();
   const items = getSortedNavItems();
 
-  // Only render in native APK mobile mode
-  if (!isMobile || !isNativeApp) return null;
-
   const handleClose = useCallback(() => {
     setMobileSidebarOpen(false);
   }, [setMobileSidebarOpen]);
@@ -22,6 +19,9 @@ function FloatingMobileSidebar() {
     router.push(path);
     setMobileSidebarOpen(false);
   }, [router, setMobileSidebarOpen]);
+
+  // Only render in native APK mobile mode
+  if (!isMobile || !isNativeApp) return null;
 
   return (
     <>
