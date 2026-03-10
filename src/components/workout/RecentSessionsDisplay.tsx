@@ -95,7 +95,13 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
     setError(null);
     
     try {
-      const url = `/api/workouts?userId=${user.id}${settings.showAllSessions ? '&showAll=true' : ''}`;
+      const days = settings.recentSessionsDays || 0;
+      let url = `/api/workouts?userId=${user.id}`;
+      if (days === -1) {
+        url += '&showAll=true';
+      } else if (days > 0) {
+        url += `&days=${days}`;
+      }
       console.log("Fetching sessions from URL:", url);
       
       const response = await fetch(url, {
@@ -141,12 +147,12 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
     }
   }, [refreshTrigger, user?.id]);
 
-  // Re-fetch when showAllSessions toggle changes
+  // Re-fetch when duration filter or showAllSessions toggle changes
   useEffect(() => {
     if (user?.id) {
       fetchSessions();
     }
-  }, [settings.showAllSessions]);
+  }, [settings.showAllSessions, settings.recentSessionsDays]);
 
   // Clear save message after 5 seconds
   useEffect(() => {
@@ -386,24 +392,31 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-jade-glow">
-            {settings.showAllSessions ? "All Training Sessions" : "Recent Training Sessions"}
+            {settings.recentSessionsDays === -1
+              ? "All Training Sessions"
+              : settings.recentSessionsDays > 0
+                ? `Training Sessions (${settings.recentSessionsDays}d)`
+                : "Recent Training Sessions"}
           </h3>
           <div className="flex items-center gap-2">
             {sessions.length > 0 && (
               <>
                 {!isEditMode && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => updateSettings({ showAllSessions: !settings.showAllSessions })}
-                    className={`text-xs px-2 py-0.5 rounded border transition-all ${
-                      settings.showAllSessions
-                        ? "bg-jade-deep/20 border-jade/40 text-jade-light"
-                        : "border-ink-light/40 text-mist-light hover:text-jade-light hover:border-jade/30"
-                    }`}
+                  <select
+                    value={settings.recentSessionsDays}
+                    onChange={(e) => {
+                      const days = parseInt(e.target.value, 10);
+                      updateSettings({ recentSessionsDays: days, showAllSessions: days === 0 });
+                    }}
+                    className="text-xs px-2 py-0.5 rounded border border-ink-light/40 bg-ink-dark text-mist-light hover:border-jade/30 transition-all cursor-pointer outline-none focus:border-jade-glow/50"
                   >
-                    {settings.showAllSessions ? "⊟ Recent" : "⊞ Show All"}
-                  </motion.button>
+                    <option value={0}>Recent 10</option>
+                    <option value={7}>Last 7 days</option>
+                    <option value={14}>Last 14 days</option>
+                    <option value={30}>Last 30 days</option>
+                    <option value={90}>Last 90 days</option>
+                    <option value={-1}>All Sessions</option>
+                  </select>
                 )}
                 {!isEditMode && (
                   <motion.button
@@ -854,7 +867,7 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
         {sessions.length > 0 && !isEditMode && (
           <div className="text-center pt-4 border-t border-ink-light">
             <p className="text-xs text-mist-dark">
-              Showing {sessions.length} {settings.showAllSessions ? "total" : "most recent"} training sessions
+              Showing {sessions.length} {settings.recentSessionsDays === -1 ? "total" : settings.recentSessionsDays > 0 ? `(last ${settings.recentSessionsDays}d)` : "most recent"} training sessions
             </p>
           </div>
         )}

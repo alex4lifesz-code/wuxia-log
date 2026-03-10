@@ -10,6 +10,7 @@ import {
   DAY_LETTERS,
   DIFFICULTY_LEVELS,
   EXERCISE_TYPES,
+  TARGET_GROUP_CATEGORIES,
   parseDayAssignments,
   toggleDayAssignment,
   isDayAssigned
@@ -421,9 +422,17 @@ export default function TechniqueManagementDrawer({
                     className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_rgba(58,143,143,0.15)] cursor-pointer"
                   >
                     <option value="">All Targets</option>
-                    {availableTargetGroups.map((tg) => (
-                      <option key={tg} value={tg}>{tg}</option>
-                    ))}
+                    {TARGET_GROUP_CATEGORIES.map((cat) => {
+                      const available = cat.groups.filter((g) => availableTargetGroups.includes(g));
+                      if (available.length === 0) return null;
+                      return (
+                        <optgroup key={cat.label} label={cat.label}>
+                          {available.map((tg) => (
+                            <option key={tg} value={tg}>{tg}</option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
                   </select>
                 )}
               </div>

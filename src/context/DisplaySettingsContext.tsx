@@ -62,6 +62,8 @@ export interface DisplaySettings {
   activeCardLoreVisible: boolean;
   // Lore/story visibility for Training Grounds sidebar
   sidebarLoreVisible: boolean;
+  // Recent sessions duration filter in days (0 = all, 7/14/30/90)
+  recentSessionsDays: number;
 }
 
 const DEFAULT_SETTINGS: DisplaySettings = {
@@ -86,6 +88,7 @@ const DEFAULT_SETTINGS: DisplaySettings = {
   glowIntensityRecentSessions: 100,
   activeCardLoreVisible: true,
   sidebarLoreVisible: true,
+  recentSessionsDays: 0,
 };
 
 const STORAGE_KEY = "cultivateos-display-settings";

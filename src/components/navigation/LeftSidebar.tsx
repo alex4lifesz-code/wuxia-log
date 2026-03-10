@@ -3,11 +3,13 @@
 import { motion, Reorder } from "framer-motion";
 import { useState, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { NavItem } from "@/lib/constants";
 
 function LeftSidebar() {
   const { getSortedNavItems, collapsed, isMobile, reorderNavItems } = useAppContext();
+  const { logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
@@ -76,7 +78,14 @@ function LeftSidebar() {
         })}
       </Reorder.Group>
 
-      <div className="px-4 pt-4 border-t border-ink-light mt-4">
+      <div className="px-4 pt-4 border-t border-ink-light mt-4 space-y-2">
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-crimson-light/70 hover:text-crimson-light hover:bg-crimson-deep/20 border border-transparent hover:border-crimson/30 transition-all duration-200"
+        >
+          <span>🚪</span>
+          <span>Logout</span>
+        </button>
         <p className="text-[10px] text-mist-dark text-center">
           The path of cultivation is long
         </p>

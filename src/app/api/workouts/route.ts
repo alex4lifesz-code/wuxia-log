@@ -6,8 +6,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const showAll = searchParams.get("showAll") === "true";
+    const daysParam = searchParams.get("days");
     
-    console.log("GET /api/workouts - userId:", userId, "showAll:", showAll);
+    console.log("GET /api/workouts - userId:", userId, "showAll:", showAll, "days:", daysParam);
 
     if (!userId && !showAll) {
       console.error("Missing userId parameter - unauthenticated request");
@@ -18,7 +19,15 @@ export async function GET(req: NextRequest) {
     }
 
     // Build query: filter by userId if provided, or return all if showAll=true
-    const whereClause = userId ? { userId } : {};
+    const whereClause: Record<string, unknown> = userId ? { userId } : {};
+
+    // Apply date range filter if days parameter provided
+    const days = daysParam ? parseInt(daysParam, 10) : 0;
+    if (days > 0) {
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      whereClause.date = { gte: since };
+    }
 
     const workouts = await prisma.workout.findMany({
       where: whereClause,
@@ -29,7 +38,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: { date: "desc" },
-      ...(showAll ? {} : { take: 10 }),
+      ...(!showAll && !days ? { take: 10 } : {}),
     });
     
     console.log(`Found ${workouts.length} workouts${userId ? ` for user ${userId}` : ' (all users)'}`);

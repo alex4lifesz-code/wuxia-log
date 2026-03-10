@@ -60,6 +60,13 @@ export const TARGET_GROUPS = [
   "Combat Reflexes",
 ] as const;
 
+export const TARGET_GROUP_CATEGORIES: { label: string; groups: string[] }[] = [
+  { label: "Body Arts", groups: ["Iron Body Conditioning", "Lightfoot Movement"] },
+  { label: "Internal Arts", groups: ["Meridian Flow", "Inner Strength", "Energy Circulation", "Breathing Arts"] },
+  { label: "Combat Arts", groups: ["Sword Forms", "Palm Techniques", "Combat Reflexes"] },
+  { label: "Mind Arts", groups: ["Mental Cultivation"] },
+];
+
 export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 export type TargetGroup = (typeof TARGET_GROUPS)[number];
