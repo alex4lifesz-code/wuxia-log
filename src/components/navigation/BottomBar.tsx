@@ -88,7 +88,6 @@ function BottomBar() {
 
         {/* Navigation bar — 3 primary items + hamburger */}
         <div 
-          {...swipeHandlers}
           className="relative bg-gradient-to-b from-ink-dark to-ink-deep border-t border-jade-glow/10 flex justify-around items-center px-2 py-3 safe-area-bottom shadow-2xl"
           style={{
             borderRadius: '24px 24px 0 0',
