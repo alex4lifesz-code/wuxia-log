@@ -1,0 +1,1149 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback, useRef } from "react";
+import GlowCard from "@/components/ui/GlowCard";
+import GlowButton from "@/components/ui/GlowButton";
+import { GlowModal } from "@/components/ui/GlowCard";
+import PageLayout from "@/components/layout/PageLayout";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useDisplaySettings } from "@/context/DisplaySettingsContext";
+import { formatDateWithPreference } from "@/lib/constants";
+
+interface User {
+  id: string;
+  name: string;
+  username: string;
+}
+
+interface CheckIn {
+  id: string;
+  date: string;
+  present: boolean;
+  weight?: number;
+  comment?: string;
+  userId: string;
+}
+
+interface CheckInRow {
+  date: string;
+  entries: Record<string, { present: boolean; weight: string; comment: string }>;
+}
+
+interface CommunityNote {
+  id: string;
+  date: string;
+  content: string;
+  pinned: boolean;
+  createdAt: string;
+  user: { id: string; name: string; username: string };
+}
+
+function formatDateLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+import { awardCheckInXP } from "@/lib/experience";
+
+function formatDateDisplay(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return dayNames[date.getDay()];
+}
+
+function formatSectDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+const quickActions = [
+  { label: "Start Training", icon: "⚔️", path: "/dashboard/workout", glow: "jade" as const },
+  { label: "Check In", icon: "📋", path: "/dashboard/checkin", glow: "blue" as const },
+  { label: "Browse Techniques", icon: "📜", path: "/dashboard/exercises", glow: "gold" as const },
+  { label: "View Path", icon: "🏔️", path: "/dashboard/progress", glow: "crimson" as const },
+];
+
+const DEFAULT_CULTIVATOR_COLORS = [
+  "#3a8f8f", // jade
+  "#d4a843", // gold
+  "#c9433e", // crimson
+  "#4a9eff", // azure
+  "#9b59b6", // violet
+  "#2ecc71", // emerald
+  "#f39c12", // amber
+  "#e74c8c", // rose
+];
+
+const CULTIVATOR_COLOR_OPTIONS = [
+  { name: "Jade", value: "#3a8f8f" },
+  { name: "Gold", value: "#d4a843" },
+  { name: "Crimson", value: "#c9433e" },
+  { name: "Azure", value: "#4a9eff" },
+  { name: "Violet", value: "#9b59b6" },
+  { name: "Emerald", value: "#2ecc71" },
+  { name: "Amber", value: "#f39c12" },
+  { name: "Rose", value: "#e74c8c" },
+];
+
+function DashboardSidebar({ stats, allUsers, userColors, onColorChange }: { stats: { sessions: number; techniques: number; streak: number; realm: string }; allUsers: User[]; userColors: Record<string, string>; onColorChange: (userId: string, color: string) => void }) {
+  return (
+    <div className="space-y-3">
+      <GlowButton variant="jade" size="sm" glow className="w-full">
+        ⚔️ Quick Training
+      </GlowButton>
+      <GlowButton variant="blue" size="sm" className="w-full">
+        📋 Today&apos;s Check-In
+      </GlowButton>
+
+      <div className="ink-border rounded-lg p-3 bg-ink-dark space-y-2">
+        <h3 className="text-xs text-jade-glow uppercase">Cultivation Stats</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-mist-mid">Training Sessions</span>
+            <span className="text-cloud-white">{stats.sessions}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-mist-mid">Techniques Known</span>
+            <span className="text-cloud-white">{stats.techniques}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-mist-mid">Check-In Streak</span>
+            <span className="text-jade-glow font-semibold">{stats.streak} days</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-mist-mid">Realm</span>
+            <span className="text-gold-dim uppercase">{stats.realm}</span>
+          </div>
+        </div>
+      </div>
+
+      {allUsers.length > 0 && (
+        <div className="ink-border rounded-lg p-3 bg-ink-dark space-y-2">
+          <h3 className="text-xs text-jade-glow uppercase">Cultivator Colours</h3>
+          <div className="space-y-2">
+            {allUsers.map((u, idx) => (
+              <div key={u.id} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: userColors[u.id] || DEFAULT_CULTIVATOR_COLORS[idx % DEFAULT_CULTIVATOR_COLORS.length] }}
+                  />
+                  <span className="text-xs text-mist-light truncate">{u.name}</span>
+                </div>
+                <div className="flex gap-0.5 shrink-0">
+                  {CULTIVATOR_COLOR_OPTIONS.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => onColorChange(u.id, c.value)}
+                      className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
+                        (userColors[u.id] || DEFAULT_CULTIVATOR_COLORS[idx % DEFAULT_CULTIVATOR_COLORS.length]) === c.value
+                          ? "border-cloud-white scale-125 shadow-[0_0_6px_currentColor]"
+                          : "border-transparent hover:border-mist-dark hover:scale-110"
+                      }`}
+                      style={{ backgroundColor: c.value }}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarDay({ date, checkedInUsers, isToday, isPast, hasNote, onClick }: { date: Date; checkedInUsers: { id: string; name: string; color: string }[]; isToday: boolean; isPast?: boolean; hasNote?: boolean; onClick?: () => void }) {
+  const hasCheckIns = checkedInUsers.length > 0;
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      onClick={onClick}
+      className={`aspect-square flex flex-col items-center justify-center rounded-lg transition-all relative cursor-pointer ${
+        isToday
+          ? "border-2 border-jade-glow bg-jade-deep/30 hover:bg-jade-deep/50 shadow-[0_0_8px_rgba(58,143,143,0.3)]"
+          : hasCheckIns
+          ? "border border-jade/40 bg-jade-dark/15 hover:bg-jade-dark/30"
+          : "border border-ink-light/60 bg-ink-dark/30 hover:bg-ink-mid/40"
+      } ${isPast && !isToday ? 'opacity-50' : ''}`}
+    >
+      <div className="text-center">
+        <div className={`text-sm font-medium ${isPast && !isToday ? 'text-mist-mid' : 'text-cloud-white'}`}>{date.getDate()}</div>
+        {isToday && <div className="text-[10px] text-jade-glow font-bold">TODAY</div>}
+      </div>
+      {hasCheckIns && (
+        <div className="absolute bottom-0.5 left-1 flex gap-[2px]">
+          {checkedInUsers.map((u) => (
+            <span
+              key={u.id}
+              title={u.name}
+              className="text-[11px] leading-none font-bold drop-shadow-[0_0_3px_currentColor]"
+              style={{ color: u.color }}
+            >
+              ✓
+            </span>
+          ))}
+        </div>
+      )}
+      {hasNote && (
+        <div className="absolute top-0.5 right-0.5 text-[8px] text-gold-glow">📝</div>
+      )}
+    </motion.div>
+  );
+}
+
+function Calendar({ checkInUsersByDate, currentMonth, setCurrentMonth, dayNotes, onDayClick, allUsers, userColors }: { checkInUsersByDate: Map<string, string[]>; currentMonth: Date; setCurrentMonth: (d: Date) => void; dayNotes?: Map<string, string>; onDayClick?: (date: string) => void; allUsers: User[]; userColors: Record<string, string> }) {
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+  const days = [];
+  const today = formatDateLocal(new Date());
+
+  // Add empty cells for days before the first day of the month
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(null);
+  }
+
+  // Add days of the month
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+    days.push(date);
+  }
+
+  return (
+    <GlowCard glow="jade" className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-cloud-white">
+          {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+        </h3>
+        <div className="flex gap-2">
+          <GlowButton
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              setCurrentMonth(
+                new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+              )
+            }
+          >
+            ← Prev
+          </GlowButton>
+          <GlowButton
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              setCurrentMonth(
+                new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+              )
+            }
+          >
+            Next →
+          </GlowButton>
+        </div>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-2 mb-2">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div key={day} className="text-center text-xs text-mist-dark uppercase font-semibold">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((date, i) => (
+          <div key={i}>
+            {date ? (
+              <CalendarDay
+                date={date}
+                checkedInUsers={
+                  (checkInUsersByDate.get(formatDateLocal(date)) || []).map(uid => {
+                    const u = allUsers.find(usr => usr.id === uid);
+                    const idx = allUsers.findIndex(usr => usr.id === uid);
+                    return { id: uid, name: u?.name || "Unknown", color: userColors[uid] || DEFAULT_CULTIVATOR_COLORS[idx >= 0 ? idx % DEFAULT_CULTIVATOR_COLORS.length : 0] };
+                  })
+                }
+                isToday={formatDateLocal(date) === today}
+                isPast={formatDateLocal(date) < today}
+                hasNote={dayNotes?.has(formatDateLocal(date))}
+                onClick={() => onDayClick?.(formatDateLocal(date))}
+              />
+            ) : (
+              <div className="aspect-square" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="pt-4 border-t border-ink-light flex flex-wrap gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded border-2 border-jade-glow bg-jade-deep/30 shadow-[0_0_4px_rgba(58,143,143,0.2)]" />
+          <span className="text-mist-mid">Today</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-jade-glow drop-shadow-[0_0_3px_rgba(58,143,143,0.6)]">✓</span>
+          <span className="text-mist-mid">Cultivator Check-In</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {allUsers.slice(0, 4).map((u, idx) => (
+            <span
+              key={u.id}
+              className="text-[10px] font-bold"
+              style={{ color: userColors[u.id] || DEFAULT_CULTIVATOR_COLORS[idx % DEFAULT_CULTIVATOR_COLORS.length] }}
+              title={u.name}
+            >
+              ✓
+            </span>
+          ))}
+          <span className="text-mist-mid ml-0.5">= per cultivator</span>
+        </div>
+      </div>
+    </GlowCard>
+  );
+}
+
+export default function DaoHallPage() {
+  const { user } = useAuth();
+  const { settings } = useDisplaySettings();
+  const dateFormat = settings.dateFormat || "dd-mmm-yyyy";
+  const router = useRouter();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [checkInUsersByDate, setCheckInUsersByDate] = useState<Map<string, string[]>>(new Map());
+  const [userColors, setUserColors] = useState<Record<string, string>>({});
+  const [stats, setStats] = useState({ sessions: 0, techniques: 0, streak: 0, realm: "Mortal" });
+  const [loading, setLoading] = useState(true);
+  const [dayNotes, setDayNotes] = useState<Map<string, string>>(new Map());
+  const [editingNote, setEditingNote] = useState<{ date: string; note: string } | null>(null);
+  const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>([]);
+  const [newCommunityNote, setNewCommunityNote] = useState("");
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [checkInRows, setCheckInRows] = useState<CheckInRow[]>([]);
+  const [xpFeedback, setXpFeedback] = useState<{ show: boolean; xp: number }>({ show: false, xp: 0 });
+  const sectRegisterRef = useRef<HTMLDivElement>(null);
+  // Check-in modal state
+  const [checkInModal, setCheckInModal] = useState<{
+    date: string;
+    entries: Record<string, { present: boolean; weight: string; comment: string }>;
+  } | null>(null);
+
+  // Sect Register filter and inline edit state
+  const [sectFilterDays, setSectFilterDays] = useState<7 | 14 | 30>(14);
+  const [isSectEditMode, setIsSectEditMode] = useState(false);
+  const [sectEditData, setSectEditData] = useState<Record<string, Record<string, { weight: string; comment: string }>>>({});
+
+  // Load user colors from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cultivator-colors");
+      if (saved) setUserColors(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleColorChange = (userId: string, color: string) => {
+    setUserColors(prev => {
+      const updated = { ...prev, [userId]: color };
+      localStorage.setItem("cultivator-colors", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Load day notes from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cultivation-day-notes");
+      if (saved) {
+        const parsed: { date: string; note: string }[] = JSON.parse(saved);
+        const map = new Map<string, string>();
+        for (const n of parsed) {
+          if (n.note.trim()) map.set(n.date, n.note);
+        }
+        setDayNotes(map);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const saveDayNote = (date: string, note: string) => {
+    setDayNotes(prev => {
+      const updated = new Map(prev);
+      if (note.trim()) {
+        updated.set(date, note.trim());
+      } else {
+        updated.delete(date);
+      }
+      // Persist to localStorage (same format as checkin page uses)
+      const arr = Array.from(updated.entries()).map(([d, n]) => ({ date: d, note: n }));
+      arr.sort((a, b) => b.date.localeCompare(a.date));
+      localStorage.setItem("cultivation-day-notes", JSON.stringify(arr));
+      return updated;
+    });
+    setEditingNote(null);
+  };
+
+  const fetchCommunityNotesForDate = useCallback(async (dateStr: string) => {
+    try {
+      const res = await fetch(`/api/checkins/notes?date=${dateStr}`);
+      const data = await res.json();
+      setCommunityNotes(data.notes || []);
+    } catch (err) {
+      console.error("Failed to fetch community notes:", err);
+    }
+  }, []);
+
+  const handleAddCommunityNote = async () => {
+    if (!user || !editingNote || !newCommunityNote.trim()) return;
+    try {
+      const res = await fetch("/api/checkins/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: editingNote.date, userId: user.id, content: newCommunityNote.trim() }),
+      });
+      if (res.ok) {
+        setNewCommunityNote("");
+        setShowAddNote(false);
+        fetchCommunityNotesForDate(editingNote.date);
+      }
+    } catch (err) {
+      console.error("Failed to add community note:", err);
+    }
+  };
+
+  const handleDeleteCommunityNote = async (noteId: string) => {
+    if (!user) return;
+    try {
+      const res = await fetch("/api/checkins/notes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId, userId: user.id }),
+      });
+      if (res.ok) {
+        setCommunityNotes(prev => prev.filter(n => n.id !== noteId));
+      }
+    } catch (err) {
+      console.error("Failed to delete community note:", err);
+    }
+  };
+
+  const handleTogglePinNote = async (noteId: string, pinned: boolean) => {
+    if (!user) return;
+    try {
+      const res = await fetch("/api/checkins/notes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId, userId: user.id, pinned }),
+      });
+      if (res.ok) {
+        setCommunityNotes(prev =>
+          prev.map(n => n.id === noteId ? { ...n, pinned } : n)
+            .sort((a, b) => {
+              if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            })
+        );
+      }
+    } catch (err) {
+      console.error("Failed to toggle pin:", err);
+    }
+  };
+
+  const handleDayClick = (dateStr: string) => {
+    // Open check-in modal for the selected day
+    const existingRow = checkInRows.find(r => r.date === dateStr);
+    const entries: Record<string, { present: boolean; weight: string; comment: string }> = {};
+    for (const u of allUsers) {
+      entries[u.id] = existingRow?.entries[u.id] || { present: false, weight: "", comment: "" };
+    }
+    setCheckInModal({ date: dateStr, entries });
+  };
+
+  const updateCheckInModalEntry = (userId: string, field: "present" | "weight" | "comment", value: string | boolean) => {
+    if (!checkInModal) return;
+    setCheckInModal(prev => {
+      if (!prev) return prev;
+      const entry = prev.entries[userId] || { present: false, weight: "", comment: "" };
+      return {
+        ...prev,
+        entries: { ...prev.entries, [userId]: { ...entry, [field]: value } },
+      };
+    });
+  };
+
+  const handleSaveCheckIn = async () => {
+    if (!checkInModal || !user) return;
+    try {
+      await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: checkInModal.date, entries: checkInModal.entries }),
+      });
+
+      // Award XP if current user checked in
+      const currentUserEntry = checkInModal.entries[user.id];
+      if (currentUserEntry?.present) {
+        await awardCheckInXP(user.id);
+        setXpFeedback({ show: true, xp: 15 });
+        setTimeout(() => setXpFeedback({ show: false, xp: 0 }), 3000);
+      }
+
+      // Update local rows
+      setCheckInRows(prev => {
+        const filtered = prev.filter(r => r.date !== checkInModal.date);
+        const newRow = { date: checkInModal.date, entries: checkInModal.entries };
+        return [newRow, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
+      });
+
+      // Update calendar user check-ins
+      setCheckInUsersByDate(prev => {
+        const updated = new Map(prev);
+        const presentUserIds = Object.entries(checkInModal.entries)
+          .filter(([, e]) => e.present)
+          .map(([uid]) => uid);
+        if (presentUserIds.length > 0) {
+          updated.set(checkInModal.date, presentUserIds);
+        } else {
+          updated.delete(checkInModal.date);
+        }
+        return updated;
+      });
+
+      setCheckInModal(null);
+
+      // Scroll to Sect Register to show the saved entry
+      setTimeout(() => {
+        sectRegisterRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (err) {
+      console.error("Failed to save check-in:", err);
+    }
+  };
+
+  const handleCheckInToggle = async (date: string, userId: string, present: boolean) => {
+    // Update local row state
+    setCheckInRows(prev => prev.map(row => {
+      if (row.date !== date) return row;
+      const entry = row.entries[userId] || { present: false, weight: "", comment: "" };
+      return { ...row, entries: { ...row.entries, [userId]: { ...entry, present } } };
+    }));
+
+    // Auto-save
+    if (!user) return;
+    try {
+      const row = checkInRows.find(r => r.date === date);
+      await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date,
+          entries: { [userId]: { present, weight: row?.entries[userId]?.weight || "", comment: row?.entries[userId]?.comment || "" } },
+        }),
+      });
+
+      if (present && userId === user.id) {
+        await awardCheckInXP(user.id);
+        setXpFeedback({ show: true, xp: 15 });
+        setTimeout(() => setXpFeedback({ show: false, xp: 0 }), 3000);
+      }
+
+      // Update calendar user check-ins
+      setCheckInUsersByDate(prev => {
+        const updated = new Map(prev);
+        const current = updated.get(date) || [];
+        if (present) {
+          if (!current.includes(userId)) updated.set(date, [...current, userId]);
+        } else {
+          const filtered = current.filter(id => id !== userId);
+          if (filtered.length > 0) updated.set(date, filtered);
+          else updated.delete(date);
+        }
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to auto-save check-in:", err);
+    }
+  };
+
+  // Sect Register edit mode handlers
+  const handleSectEditToggle = () => {
+    if (!isSectEditMode) {
+      const data: Record<string, Record<string, { weight: string; comment: string }>> = {};
+      for (const row of checkInRows) {
+        data[row.date] = {};
+        for (const u of allUsers) {
+          const entry = row.entries[u.id];
+          data[row.date][u.id] = {
+            weight: entry?.weight || "",
+            comment: entry?.comment || "",
+          };
+        }
+      }
+      setSectEditData(data);
+    }
+    setIsSectEditMode(!isSectEditMode);
+  };
+
+  const handleSectEditChange = (date: string, userId: string, field: "weight" | "comment", value: string) => {
+    setSectEditData(prev => ({
+      ...prev,
+      [date]: {
+        ...prev[date],
+        [userId]: {
+          ...prev[date]?.[userId],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const handleSectEditSave = async () => {
+    try {
+      const filtered = checkInRows.filter(row => {
+        const rowDate = new Date(row.date + 'T00:00:00');
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((now.getTime() - rowDate.getTime()) / 86400000);
+        return diffDays >= 0 && diffDays < sectFilterDays;
+      });
+      for (const row of filtered) {
+        const edited = sectEditData[row.date];
+        if (!edited) continue;
+        let changed = false;
+        const entries: Record<string, { present: boolean; weight: string; comment: string }> = {};
+        for (const u of allUsers) {
+          const original = row.entries[u.id] || { present: false, weight: "", comment: "" };
+          const editedEntry = edited[u.id];
+          const newWeight = editedEntry?.weight ?? original.weight;
+          const newComment = editedEntry?.comment ?? original.comment;
+          if (newWeight !== original.weight || newComment !== original.comment) changed = true;
+          entries[u.id] = { present: original.present, weight: newWeight, comment: newComment };
+        }
+        if (changed) {
+          await fetch("/api/checkins", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ date: row.date, entries }),
+          });
+        }
+      }
+      setCheckInRows(prev => prev.map(row => {
+        const edited = sectEditData[row.date];
+        if (!edited) return row;
+        const newEntries = { ...row.entries };
+        for (const userId of Object.keys(edited)) {
+          if (newEntries[userId]) {
+            newEntries[userId] = {
+              ...newEntries[userId],
+              weight: edited[userId]?.weight ?? newEntries[userId]?.weight ?? "",
+              comment: edited[userId]?.comment ?? newEntries[userId]?.comment ?? "",
+            };
+          }
+        }
+        return { ...row, entries: newEntries };
+      }));
+      setIsSectEditMode(false);
+      setSectEditData({});
+    } catch (err) {
+      console.error("Failed to save sect register edits:", err);
+    }
+  };
+
+  const handleSectEditCancel = () => {
+    setIsSectEditMode(false);
+    setSectEditData({});
+  };
+
+  // Filtered check-in rows for Sect Register
+  const filteredCheckInRows = checkInRows.filter(row => {
+    const rowDate = new Date(row.date + 'T00:00:00');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((now.getTime() - rowDate.getTime()) / 86400000);
+    return diffDays >= 0 && diffDays < sectFilterDays;
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch check-ins and users in parallel
+        const [checkinsRes, usersRes, expRes, workoutRes, exerciseRes] = await Promise.all([
+          fetch("/api/checkins"),
+          fetch("/api/users"),
+          fetch(`/api/users/experience?userId=${user.id}`),
+          fetch("/api/workouts"),
+          fetch("/api/exercises"),
+        ]);
+        const checkinsData = await checkinsRes.json();
+        const usersData = await usersRes.json();
+        const expData = await expRes.json();
+        const workoutData = await workoutRes.json();
+        const exerciseData = await exerciseRes.json();
+
+        // Set all users
+        setAllUsers(usersData.users || []);
+
+        // Build check-in users by date and rows
+        const usersByDate = new Map<string, string[]>();
+        const userCheckInDates = new Set<string>();
+        const grouped: Record<string, CheckInRow["entries"]> = {};
+
+        for (const checkin of checkinsData.checkins || []) {
+          const date = checkin.date.split("T")[0];
+          if (checkin.present) {
+            const current = usersByDate.get(date) || [];
+            if (!current.includes(checkin.userId)) {
+              usersByDate.set(date, [...current, checkin.userId]);
+            }
+            if (checkin.userId === user.id) {
+              userCheckInDates.add(date);
+            }
+          }
+          if (!grouped[date]) grouped[date] = {};
+          grouped[date][checkin.userId] = {
+            present: checkin.present,
+            weight: checkin.weight?.toString() || "",
+            comment: checkin.comment || "",
+          };
+        }
+
+        setCheckInUsersByDate(usersByDate);
+        const sortedRows = Object.entries(grouped)
+          .sort(([a], [b]) => b.localeCompare(a))
+          .map(([date, entries]) => ({ date, entries }));
+        setCheckInRows(sortedRows);
+
+        const userExp = expData.user?.experience || 0;
+        const userWorkouts = (workoutData.workouts || []).filter((w: any) => w.userId === user.id);
+
+        // Calculate streak using current user's dates
+        const today = new Date();
+        let streak = 0;
+        for (let i = 0; i < 365; i++) {
+          const checkDate = new Date(today);
+          checkDate.setDate(checkDate.getDate() - i);
+          const dateStr = formatDateLocal(checkDate);
+          if (userCheckInDates.has(dateStr)) {
+            streak++;
+          } else if (i > 0) {
+            break;
+          }
+        }
+
+        // Calculate realm from experience
+        const realms = ["Mortal", "Foundation", "Core", "Nascent", "Soul Splitting", "Tribulation", "Immortal"];
+        const xpThresholds = [0, 100, 300, 600, 1200, 2000, 3500];
+        let currentRealm = "Mortal";
+        for (let i = xpThresholds.length - 1; i >= 0; i--) {
+          if (userExp >= xpThresholds[i]) {
+            currentRealm = realms[i];
+            break;
+          }
+        }
+
+        setStats({
+          sessions: userWorkouts.length,
+          techniques: exerciseData.exercises?.length || 0,
+          streak,
+          realm: currentRealm,
+        });
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (!user) return null;
+
+  return (
+    <PageLayout
+      title="Dao Hall"
+      subtitle="The spiritual center of your cultivation journey"
+      sidebar={<DashboardSidebar stats={stats} allUsers={allUsers} userColors={userColors} onColorChange={handleColorChange} />}
+      sidebarLabel="Cultivation Stats"
+    >
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="text-3xl"
+          >
+            ☯
+          </motion.div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Calendar */}
+          <Calendar checkInUsersByDate={checkInUsersByDate} currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} dayNotes={dayNotes} onDayClick={handleDayClick} allUsers={allUsers} userColors={userColors} />
+
+          {/* Quick Actions */}
+          <div>
+            <h3 className="text-sm text-jade-glow uppercase mb-3">Quick Actions</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {quickActions.map((action, i) => (
+                <motion.div
+                  key={action.path}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <GlowButton
+                    variant={action.glow}
+                    className="w-full text-center"
+                    onClick={() => router.push(action.path)}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-lg">{action.icon}</span>
+                      <span className="text-xs">{action.label}</span>
+                    </div>
+                  </GlowButton>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* XP Feedback */}
+          {xpFeedback.show && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="p-3 bg-gradient-to-r from-jade-dark to-jade-glow/30 border border-jade-glow rounded-lg text-center text-jade-glow font-semibold flex items-center justify-center gap-2"
+            >
+              <span className="text-lg">✨</span>
+              <span>+{xpFeedback.xp} XP Gained!</span>
+              <span className="text-lg">✨</span>
+            </motion.div>
+          )}
+
+          {/* Sect Register Table — Check-In Records */}
+          <GlowCard glow="jade" className="w-full">
+            <div ref={sectRegisterRef} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-jade-glow">Sect Register</h3>
+                <div className="flex items-center gap-2">
+                  {!isSectEditMode && (
+                    <div className="flex items-center gap-1">
+                      {([7, 14, 30] as const).map((days) => (
+                        <motion.button
+                          key={days}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setSectFilterDays(days)}
+                          className={`text-xs px-2 py-0.5 rounded border transition-all ${
+                            sectFilterDays === days
+                              ? "bg-jade-deep/20 border-jade/40 text-jade-light"
+                              : "border-ink-light/40 text-mist-light hover:text-jade-light hover:border-jade/30"
+                          }`}
+                        >
+                          {days}d
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
+                  {checkInRows.length > 0 && (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleSectEditToggle}
+                      className={`text-xs px-3 py-1 rounded border transition-all ${
+                        isSectEditMode
+                          ? "bg-crimson-deep/20 border-crimson/40 text-crimson-light"
+                          : "border-jade-glow/40 text-jade-light hover:bg-jade-deep/10"
+                      }`}
+                    >
+                      {isSectEditMode ? "✕ Cancel Edit" : "✎ Edit"}
+                    </motion.button>
+                  )}
+                </div>
+              </div>
+
+              {isSectEditMode && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg border bg-jade-deep/10 border-jade/40 text-xs text-jade-light"
+                >
+                  Edit mode enabled. Modify weight and comment data below, then click Save or Cancel.
+                </motion.div>
+              )}
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse table-auto">
+                  <thead>
+                    <tr className="border-b-2 border-jade-glow/50 bg-ink-mid/40 text-mist-light">
+                      <th className="px-1.5 py-2 text-left font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle">
+                        Date
+                      </th>
+                      <th className="px-1.5 py-2 text-center font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle">
+                        Day
+                      </th>
+                      {allUsers.map((u) => (
+                        <th
+                          key={`header-check-${u.id}`}
+                          className="px-1 py-2 text-center font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle"
+                        >
+                          {u.name}
+                        </th>
+                      ))}
+                      {allUsers.map((u) => (
+                        <th
+                          key={`header-weight-${u.id}`}
+                          className="px-1 py-2 text-center font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle"
+                        >
+                          {u.name.charAt(0)}.Wt
+                        </th>
+                      ))}
+                      <th className="px-1.5 py-2 text-left font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle w-[1%]">
+                        Notes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCheckInRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={3 + allUsers.length * 2}
+                          className="py-12 text-center text-mist-dark italic"
+                        >
+                          No records in the last {sectFilterDays} days. Click a calendar day to begin.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCheckInRows.map((row, rowIdx) => (
+                        <motion.tr
+                          key={row.date}
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: rowIdx * 0.02 }}
+                          className={`border-b transition-all duration-200 ${
+                            isSectEditMode
+                              ? "border-jade-glow/20 bg-jade-deep/10 hover:bg-jade-deep/15"
+                              : "border-ink-light hover:bg-ink-mid/15"
+                          }`}
+                        >
+                          <td className="px-1.5 py-1.5 text-mist-light text-xs tracking-normal align-middle whitespace-nowrap">
+                            <button
+                              onClick={() => handleDayClick(row.date)}
+                              className="hover:text-jade-glow transition-colors text-left"
+                              title="Click to edit check-in"
+                            >
+                              {formatDateWithPreference(row.date, dateFormat)}
+                            </button>
+                          </td>
+                          <td className="px-1.5 py-1.5 text-center text-mist-light text-xs align-middle">
+                            {formatDateDisplay(row.date)}
+                          </td>
+                          {allUsers.map((u) => (
+                            <td
+                              key={`check-${row.date}-${u.id}`}
+                              className="px-1 py-1.5 text-center align-middle"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={row.entries[u.id]?.present || false}
+                                onChange={(e) => handleCheckInToggle(row.date, u.id, e.target.checked)}
+                                className="w-4 h-4 accent-jade-glow cursor-pointer"
+                              />
+                            </td>
+                          ))}
+                          {allUsers.map((u) => (
+                            <td
+                              key={`weight-${row.date}-${u.id}`}
+                              className="px-1 py-1.5 text-center align-middle"
+                            >
+                              {isSectEditMode ? (
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={sectEditData[row.date]?.[u.id]?.weight ?? row.entries[u.id]?.weight ?? ""}
+                                  onChange={(e) => handleSectEditChange(row.date, u.id, "weight", e.target.value)}
+                                  placeholder="—"
+                                  className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                             text-center text-xs outline-none transition-all duration-200
+                                             focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
+                                />
+                              ) : (
+                                <span className="text-cloud-white text-xs">
+                                  {row.entries[u.id]?.weight || "—"}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-1.5 py-1.5 align-middle">
+                            {isSectEditMode ? (
+                              <input
+                                type="text"
+                                value={sectEditData[row.date]?.[allUsers[0]?.id]?.comment ?? row.entries[allUsers[0]?.id]?.comment ?? ""}
+                                onChange={(e) => {
+                                  if (allUsers[0]) handleSectEditChange(row.date, allUsers[0].id, "comment", e.target.value);
+                                }}
+                                placeholder="Add notes..."
+                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-2 py-1 text-cloud-white text-xs
+                                           placeholder:text-mist-dark outline-none transition-all duration-200
+                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
+                              />
+                            ) : (
+                              <span
+                                className="text-mist-light text-xs truncate max-w-[180px] cursor-help hover:text-mist-glow transition-colors whitespace-nowrap block"
+                                title={row.entries[allUsers[0]?.id]?.comment || "No notes"}
+                              >
+                                {row.entries[allUsers[0]?.id]?.comment || "—"}
+                              </span>
+                            )}
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {isSectEditMode && filteredCheckInRows.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-3 pt-4 border-t border-ink-light"
+                >
+                  <GlowButton
+                    variant="jade"
+                    size="sm"
+                    className="flex-1"
+                    onClick={handleSectEditSave}
+                  >
+                    ✓ Save Changes
+                  </GlowButton>
+                  <GlowButton
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1"
+                    onClick={handleSectEditCancel}
+                  >
+                    ✕ Cancel
+                  </GlowButton>
+                </motion.div>
+              )}
+
+              {filteredCheckInRows.length > 0 && !isSectEditMode && (
+                <div className="text-center pt-2 border-t border-ink-light">
+                  <p className="text-xs text-mist-dark">
+                    Showing {filteredCheckInRows.length} records from the last {sectFilterDays} days
+                  </p>
+                </div>
+              )}
+            </div>
+          </GlowCard>
+        </div>
+      )}
+
+      {/* Day Check-In Modal */}
+      <GlowModal
+        isOpen={!!checkInModal}
+        onClose={() => { setCheckInModal(null); }}
+        title={`Day Check-In — ${checkInModal ? formatDateWithPreference(checkInModal.date, dateFormat) : ""}`}
+      >
+        <div className="space-y-4">
+          {checkInModal && (() => {
+            const modalDate = new Date(checkInModal.date + 'T00:00:00');
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            const diffDays = Math.floor((modalDate.getTime() - todayDate.getTime()) / 86400000);
+            const isFarFuture = diffDays >= 2;
+
+            return (
+            <>
+              <p className="text-xs text-mist-dark">
+                {modalDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              </p>
+
+              {isFarFuture && (
+                <div className="px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-[11px] text-amber-300/80">
+                  ⏳ Future date — only shared comments are available. Check-in is restricted to today and the next day.
+                </div>
+              )}
+
+              {/* Check-In Section — Horizontal cultivator boxes (hidden for far-future dates) */}
+              {!isFarFuture && (
+              <div>
+                <label className="block text-xs text-jade-glow uppercase tracking-wider mb-3">
+                  📋 Cultivator Check-In
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {allUsers.map((u, idx) => {
+                    const entry = checkInModal.entries[u.id] || { present: false, weight: "", comment: "" };
+                    const color = userColors[u.id] || DEFAULT_CULTIVATOR_COLORS[idx % DEFAULT_CULTIVATOR_COLORS.length];
+                    return (
+                      <motion.div
+                        key={u.id}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => updateCheckInModalEntry(u.id, "present", !entry.present)}
+                        className={`cursor-pointer rounded-lg border-2 p-3 text-center transition-all duration-200 select-none ${
+                          entry.present
+                            ? "bg-jade-deep/30"
+                            : "border-ink-light bg-ink-dark/60 hover:bg-ink-mid/40 hover:border-mist-dark"
+                        }`}
+                        style={entry.present ? { borderColor: color, boxShadow: `0 0 14px ${color}50` } : {}}
+                      >
+                        <div className="flex flex-col items-center gap-1.5">
+                          <span
+                            className="text-xl font-bold transition-all drop-shadow-[0_0_4px_currentColor]"
+                            style={{ color: entry.present ? color : '#4b5563' }}
+                          >
+                            {entry.present ? '✓' : '○'}
+                          </span>
+                          <span className={`text-xs font-medium transition-colors ${entry.present ? 'text-cloud-white' : 'text-mist-mid'}`}>
+                            {u.name}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+              )}
+
+                {/* Shared Comment */}
+                <div className={isFarFuture ? "" : "mt-4"}>
+                  <label className="block text-[10px] text-mist-dark uppercase mb-1">Shared Comments</label>
+                  <input
+                    type="text"
+                    placeholder="Notes visible to all cultivators..."
+                    value={checkInModal.entries[allUsers[0]?.id]?.comment || ""}
+                    onChange={(e) => {
+                      if (allUsers[0]) {
+                        updateCheckInModalEntry(allUsers[0].id, "comment", e.target.value);
+                      }
+                    }}
+                    className="w-full bg-ink-deep border border-ink-light rounded px-3 py-2 text-xs text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors"
+                  />
+                </div>
+
+                <GlowButton
+                  variant="jade"
+                  glow
+                  className="w-full mt-4"
+                  onClick={handleSaveCheckIn}
+                  size="sm"
+                >
+                  {isFarFuture ? "💾 Save Note" : "✓ Save Check-In"}
+                </GlowButton>
+            </>
+            );
+          })()}
+        </div>
+      </GlowModal>
+    </PageLayout>
+  );
+}

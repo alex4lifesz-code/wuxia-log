@@ -1,0 +1,124 @@
+// Cultivation Workout App - Database Schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  role      String   @default("user")
+  experience Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checkIns     CheckIn[]
+  workouts     Workout[]
+  settings     UserSettings?
+  checkInNotes CheckInNote[]
+}
+
+model UserSettings {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  user            User    @relation(fields: [userId], references: [id])
+  dualPageView    Boolean @default(false)
+  pinnedNavItems  String  @default("[]")
+  hiddenNavItems  String  @default("[]")
+  panelPosition   String  @default("left")
+  combinedView    Boolean @default(false)
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  date      DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  weight    Float?
+  comment   String?
+  present   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([date, userId])
+}
+
+model Exercise {
+  id          String  @id @default(cuid())
+  name        String
+  originalName String?
+  difficulty  String
+  type        String
+  story       String?
+  targetGroup String?
+  assignedDays String @default("") // Comma-separated list of days: "0,1,2" for Sun,Mon,Tue
+  createdAt   DateTime @default(now())
+
+  simplifiedWorkouts SimplifiedWorkoutExercise[]
+  detailedWorkouts   DetailedWorkoutExercise[]
+}
+
+model Workout {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  date      DateTime @default(now())
+  totalXP   Int      @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  simplifiedExercises SimplifiedWorkoutExercise[]
+  detailedExercises   DetailedWorkoutExercise[]
+}
+
+model SimplifiedWorkoutExercise {
+  id         String   @id @default(cuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  weight1    Float?
+  reps1      Int?
+  weight2    Float?
+  reps2      Int?
+  weight3    Float?
+  reps3      Int?
+  notes      String?
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model DetailedWorkoutExercise {
+  id         String   @id @default(cuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  weight1    Float?
+  reps1      Int?
+  weight2    Float?
+  reps2      Int?
+  weight3    Float?
+  reps3      Int?
+  notes      String?
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model CheckInNote {
+  id        String   @id @default(cuid())
+  date      String              // "YYYY-MM-DD" date string
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

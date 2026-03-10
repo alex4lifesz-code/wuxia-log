@@ -1,26 +1,568 @@
 @import "tailwindcss";
 
+/* ===== Cultivation Workout — Wuxia Ink Painting Theme ===== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette extracted from the wuxia mountain painting */
+  --void-black: #0d0f14;
+  --ink-deep: #151823;
+  --ink-dark: #1a1e2e;
+  --ink-mid: #252a3a;
+  --ink-light: #2f3548;
+  --mist-dark: #4a5568;
+  --mist-mid: #6b7b8d;
+  --mist-light: #94a3b8;
+  --mist-pale: #b8c4d4;
+  --cloud-white: #dce4ef;
+  --pure-white: #f0f4f8;
+
+  /* Accent colours */
+  --jade-deep: #1a4a4a;
+  --jade: #2d6b6b;
+  --jade-glow: #3a8f8f;
+  --jade-light: #5bbfbf;
+  --crimson-deep: #6b1a1a;
+  --crimson: #8b2020;
+  --crimson-glow: #c43030;
+  --crimson-light: #e84848;
+  --mountain-blue: #3a6b8f;
+  --mountain-blue-glow: #4a8fb8;
+  --forest-deep: #1a3a2a;
+  --forest: #2d5a3e;
+  --gold-dim: #8b7a3a;
+  --gold: #c4a84a;
+  --gold-glow: #e8c84a;
+
+  /* Difficulty colors */
+  --difficulty-green: #22c55e;
+  --difficulty-green-glow: #16a34a;
+  --difficulty-amber: #f59e0b;
+  --difficulty-amber-glow: #d97706;
+  --difficulty-red: #ef4444;
+  --difficulty-red-glow: #dc2626;
+  --difficulty-violet: #8b5cf6;
+  --difficulty-violet-glow: #7c3aed;
+  --difficulty-pink: #ec4899;
+  --difficulty-pink-glow: #d946ef;
+  --difficulty-light-pink: #f9a8d4;
+  --difficulty-light-pink-glow: #f472b6;
+
+  /* Semantic tokens */
+  --background: var(--void-black);
+  --foreground: var(--cloud-white);
+  --surface: var(--ink-deep);
+  --surface-hover: var(--ink-mid);
+  --border: var(--ink-light);
+  --border-glow: var(--jade);
+  --text-primary: var(--cloud-white);
+  --text-secondary: var(--mist-light);
+  --text-muted: var(--mist-dark);
+  --accent: var(--jade-glow);
+  --accent-hover: var(--jade-light);
+  --danger: var(--crimson);
+  --danger-hover: var(--crimson-glow);
+
+  /* Glow effects */
+  --glow-jade: 0 0 20px rgba(58, 143, 143, 0.4), 0 0 40px rgba(58, 143, 143, 0.2);
+  --glow-crimson: 0 0 20px rgba(196, 48, 48, 0.4), 0 0 40px rgba(196, 48, 48, 0.2);
+  --glow-gold: 0 0 20px rgba(232, 200, 74, 0.4), 0 0 40px rgba(232, 200, 74, 0.2);
+  --glow-blue: 0 0 20px rgba(74, 143, 184, 0.4), 0 0 40px rgba(74, 143, 184, 0.2);
+  --glow-subtle: 0 0 10px rgba(58, 143, 143, 0.15);
+
+  /* Difficulty glows */
+  --glow-difficulty-green: 0 0 15px rgba(34, 197, 94, 0.3), 0 0 30px rgba(34, 197, 94, 0.1);
+  --glow-difficulty-amber: 0 0 15px rgba(245, 158, 11, 0.3), 0 0 30px rgba(245, 158, 11, 0.1);
+  --glow-difficulty-red: 0 0 15px rgba(239, 68, 68, 0.3), 0 0 30px rgba(239, 68, 68, 0.1);
+  --glow-difficulty-violet: 0 0 15px rgba(139, 92, 246, 0.3), 0 0 30px rgba(139, 92, 246, 0.1);
+  --glow-difficulty-pink: 0 0 15px rgba(236, 72, 153, 0.3), 0 0 30px rgba(236, 72, 153, 0.1);
+  --glow-difficulty-light-pink: 0 0 15px rgba(249, 168, 212, 0.3), 0 0 30px rgba(249, 168, 212, 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-custom: var(--border);
+  --color-border-glow: var(--border-glow);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  --color-void-black: var(--void-black);
+  --color-ink-deep: var(--ink-deep);
+  --color-ink-dark: var(--ink-dark);
+  --color-ink-mid: var(--ink-mid);
+  --color-ink-light: var(--ink-light);
+  --color-mist-dark: var(--mist-dark);
+  --color-mist-mid: var(--mist-mid);
+  --color-mist-light: var(--mist-light);
+  --color-mist-pale: var(--mist-pale);
+  --color-cloud-white: var(--cloud-white);
+  --color-pure-white: var(--pure-white);
+  --color-jade-deep: var(--jade-deep);
+  --color-jade: var(--jade);
+  --color-jade-glow: var(--jade-glow);
+  --color-jade-light: var(--jade-light);
+  --color-crimson-deep: var(--crimson-deep);
+  --color-crimson: var(--crimson);
+  --color-crimson-glow: var(--crimson-glow);
+  --color-crimson-light: var(--crimson-light);
+  --color-mountain-blue: var(--mountain-blue);
+  --color-mountain-blue-glow: var(--mountain-blue-glow);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest: var(--forest);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold: var(--gold);
+  --color-gold-glow: var(--gold-glow);
+
+  --color-difficulty-green: var(--difficulty-green);
+  --color-difficulty-green-glow: var(--difficulty-green-glow);
+  --color-difficulty-amber: var(--difficulty-amber);
+  --color-difficulty-amber-glow: var(--difficulty-amber-glow);
+  --color-difficulty-red: var(--difficulty-red);
+  --color-difficulty-red-glow: var(--difficulty-red-glow);
+  --color-difficulty-violet: var(--difficulty-violet);
+  --color-difficulty-violet-glow: var(--difficulty-violet-glow);
+  --color-difficulty-pink: var(--difficulty-pink);
+  --color-difficulty-pink-glow: var(--difficulty-pink-glow);
+  --color-difficulty-light-pink: var(--difficulty-light-pink);
+  --color-difficulty-light-pink-glow: var(--difficulty-light-pink-glow);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== Base Styles ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-light) var(--void-black);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+/* ===== Glow Animations ===== */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes inkSpread {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes mistDrift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glowBreath {
+  0%, 100% {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--glow-color, #3a8f8f) 30%, transparent),
+      0 0 55px color-mix(in srgb, var(--glow-color, #3a8f8f) 18%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 28px color-mix(in srgb, var(--glow-color, #3a8f8f) 55%, transparent),
+      0 0 75px color-mix(in srgb, var(--glow-color, #3a8f8f) 35%, transparent);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: floatUp 4s ease-in-out infinite;
+}
+
+.animate-ink-spread {
+  animation: inkSpread 0.4s ease-out;
+}
+
+.glow-breath {
+  animation: glowBreath 3.6s ease-in-out infinite;
+}
+
+.glow-title {
+  text-shadow: 0 0 12px rgba(58, 143, 143, 0.35);
+}
+
+.lore-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 3.6rem;
+}
+
+/* ===== Utility Classes ===== */
+.glow-jade {
+  box-shadow: var(--glow-jade);
+}
+
+.glow-crimson {
+  box-shadow: var(--glow-crimson);
+}
+
+.glow-gold {
+  box-shadow: var(--glow-gold);
+}
+
+.glow-blue {
+  box-shadow: var(--glow-blue);
+}
+
+.glow-subtle {
+  box-shadow: var(--glow-subtle);
+}
+
+/* Difficulty glow classes */
+.glow-difficulty-green {
+  box-shadow: var(--glow-difficulty-green);
+}
+
+.glow-difficulty-amber {
+  box-shadow: var(--glow-difficulty-amber);
+}
+
+.glow-difficulty-red {
+  box-shadow: var(--glow-difficulty-red);
+}
+
+.glow-difficulty-violet {
+  box-shadow: var(--glow-difficulty-violet);
+}
+
+.glow-difficulty-pink {
+  box-shadow: var(--glow-difficulty-pink);
+}
+
+.glow-difficulty-light-pink {
+  box-shadow: var(--glow-difficulty-light-pink);
+}
+
+.ink-border {
+  border: 1px solid var(--border);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ink-border:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--glow-subtle);
+}
+
+.cultivation-gradient {
+  background: linear-gradient(135deg, var(--ink-deep), var(--ink-dark), var(--jade-deep));
+}
+
+.mist-overlay {
+  background: linear-gradient(180deg, transparent, rgba(13, 15, 20, 0.8));
+}
+
+/* Selection */
+::selection {
+  background: var(--jade-deep);
+  color: var(--cloud-white);
+}
+
+/* ===== Custom Scrollbar — Sidebar & General ===== */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--ink-light);
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--jade-deep);
+}
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-light) transparent;
+}
+
+/* ===== Hidden Scrollbar — Scroll without visible scrollbar ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* ===== LIGHT THEME — Ink Wash Mountain Mist ===== */
+/* Inspired by the wuxia mountain painting: soft blue-greys,
+   gentle lavenders, mist whites, rice-paper backgrounds,
+   teal-green foliage accents and muted terracotta reds. */
+
+html.mountain-mist {
+  /* Core palette — rice paper, mist, and mountain stone */
+  --void-black: #f5f0eb;
+  --ink-deep: #ede7e1;
+  --ink-dark: #e8e2dc;
+  --ink-mid: #ddd6cf;
+  --ink-light: #c8c0b8;
+  --mist-dark: #8a9aaa;
+  --mist-mid: #7088a0;
+  --mist-light: #5a7590;
+  --mist-pale: #4a6578;
+  --cloud-white: #2c3440;
+  --pure-white: #1a2030;
+
+  /* Accent colours — teal foliage & terracotta robes */
+  --jade-deep: #b8dede;
+  --jade: #4a9e9e;
+  --jade-glow: #2d7a7a;
+  --jade-light: #1f5c5c;
+  --crimson-deep: #f0d0d0;
+  --crimson: #a04040;
+  --crimson-glow: #883030;
+  --crimson-light: #702828;
+  --mountain-blue: #5a8aaa;
+  --mountain-blue-glow: #3a6a8a;
+  --forest-deep: #c8e0d0;
+  --forest: #4a8a60;
+  --gold-dim: #a09050;
+  --gold: #887840;
+  --gold-glow: #706030;
+
+  /* Semantic tokens */
+  --background: #f5f0eb;
+  --foreground: #2c3440;
+  --surface: #ede7e1;
+  --surface-hover: #ddd6cf;
+  --border: #c8c0b8;
+  --border-glow: #4a9e9e;
+  --text-primary: #2c3440;
+  --text-secondary: #5a7590;
+  --text-muted: #8a9aaa;
+  --accent: #2d7a7a;
+  --accent-hover: #1f5c5c;
+  --danger: #a04040;
+  --danger-hover: #883030;
+
+  /* Glow effects — softer, more diffused like morning mist */
+  --glow-jade: 0 0 16px rgba(45, 122, 122, 0.2), 0 0 32px rgba(45, 122, 122, 0.1);
+  --glow-crimson: 0 0 16px rgba(160, 64, 64, 0.2), 0 0 32px rgba(160, 64, 64, 0.1);
+  --glow-gold: 0 0 16px rgba(136, 120, 64, 0.2), 0 0 32px rgba(136, 120, 64, 0.1);
+  --glow-blue: 0 0 16px rgba(58, 106, 138, 0.2), 0 0 32px rgba(58, 106, 138, 0.1);
+  --glow-subtle: 0 0 8px rgba(45, 122, 122, 0.1);
+}
+
+html.mountain-mist .cultivation-gradient {
+  background: linear-gradient(135deg, #ede7e1, #e0dbd5, #b8dede);
+}
+
+html.mountain-mist .mist-overlay {
+  background: linear-gradient(180deg, transparent, rgba(245, 240, 235, 0.8));
+}
+
+html.mountain-mist ::selection {
+  background: #b8dede;
+  color: #2c3440;
+}
+
+html.mountain-mist * {
+  scrollbar-color: #c8c0b8 #f5f0eb;
+}
+
+/* ===== CALLIGRAPHY THEME — Black & Gold Brush Strokes ===== */
+/* Inspired by classical Chinese calligraphy art: pure black ink,
+   burnished gold accents, true grayscale, and minimalist elegance. */
+
+html.calligraphy {
+  /* Core palette — pure grayscale from black to white */
+  --void-black: #050505;
+  --ink-deep: #0f0f0f;
+  --ink-dark: #1a1a1a;
+  --ink-mid: #252525;
+  --ink-light: #333333;
+  --mist-dark: #4a4a4a;
+  --mist-mid: #666666;
+  --mist-light: #888888;
+  --mist-pale: #aaaaaa;
+  --cloud-white: #d0d0d0;
+  --pure-white: #e8e8e8;
+
+  /* Accent colours — burnished gold only, everything else grayscale */
+  --jade-deep: #1a1a1a;
+  --jade: #333333;
+  --jade-glow: #d4a860;
+  --jade-light: #f0b870;
+  --crimson-deep: #1f1f1f;
+  --crimson: #333333;
+  --crimson-glow: #d4a860;
+  --crimson-light: #e8b878;
+  --mountain-blue: #2a2a2a;
+  --mountain-blue-glow: #3a3a3a;
+  --forest-deep: #0a0a0a;
+  --forest: #151515;
+  --gold-dim: #a89060;
+  --gold: #d4a860;
+  --gold-glow: #f0b870;
+
+  /* Semantic tokens */
+  --background: #050505;
+  --foreground: #d0d0d0;
+  --surface: #0f0f0f;
+  --surface-hover: #1a1a1a;
+  --border: #333333;
+  --border-glow: #d4a860;
+  --text-primary: #d0d0d0;
+  --text-secondary: #888888;
+  --text-muted: #666666;
+  --accent: #d4a860;
+  --accent-hover: #f0b870;
+  --danger: #888888;
+  --danger-hover: #aaaaaa;
+
+  /* Glow effects — warm burnished gold only */
+  --glow-jade: 0 0 20px rgba(212, 168, 96, 0.3), 0 0 40px rgba(212, 168, 96, 0.12);
+  --glow-crimson: 0 0 20px rgba(212, 168, 96, 0.2), 0 0 40px rgba(212, 168, 96, 0.08);
+  --glow-gold: 0 0 20px rgba(240, 184, 112, 0.3), 0 0 40px rgba(240, 184, 112, 0.12);
+  --glow-blue: 0 0 20px rgba(170, 170, 170, 0.2), 0 0 40px rgba(170, 170, 170, 0.08);
+  --glow-subtle: 0 0 10px rgba(212, 168, 96, 0.15);
+}
+
+html.calligraphy .cultivation-gradient {
+  background: linear-gradient(135deg, #0f0f0f, #1a1a1a, #252525);
+}
+
+html.calligraphy .mist-overlay {
+  background: linear-gradient(180deg, transparent, rgba(5, 5, 5, 0.95));
+}
+
+html.calligraphy ::selection {
+  background: #333333;
+  color: #f0b870;
+}
+
+html.calligraphy * {
+  scrollbar-color: #333333 #050505;
+}
+
+/* ===== Sakura Cherry Blossom Theme ===== */
+html.sakura {
+  /* Core palette — soft pinks and whites with improved contrast */
+  --void-black: #faf7f6;
+  --ink-deep: #f5f1f0;
+  --ink-dark: #ede8e6;
+  --ink-mid: #e0d9d7;
+  --ink-light: #d0c5c1;
+  --mist-dark: #9d8a87;
+  --mist-mid: #8a7472;
+  --mist-light: #6b5a56;
+  --mist-pale: #5a4945;
+  --cloud-white: #3a2a28;
+  --pure-white: #1a0a08;
+
+  /* Accent colours — cherry blossom pinks with higher saturation */
+  --jade-deep: #d4889c;
+  --jade: #e8507a;
+  --jade-glow: #f5386b;
+  --jade-light: #ff1a5e;
+  --crimson-deep: #b87a6f;
+  --crimson: #d85a4a;
+  --crimson-glow: #ff3a2a;
+  --crimson-light: #ff5a3a;
+  --mountain-blue: #9aafcc;
+  --mountain-blue-glow: #7a96b3;
+  --forest-deep: #a8c8b8;
+  --forest: #88b8a8;
+  --gold-dim: #c8a890;
+  --gold: #e8b890;
+  --gold-glow: #f8c8a0;
+
+  /* Semantic tokens */
+  --background: #faf7f6;
+  --foreground: #1a0a08;
+  --surface: #f5f1f0;
+  --surface-hover: #e8e0de;
+  --border: #d0c5c1;
+  --border-glow: #e8507a;
+  --text-primary: #3a2a28;
+  --text-secondary: #5a4945;
+  --text-muted: #8a7472;
+  --accent: #e8507a;
+  --accent-hover: #f5386b;
+  --danger: #c85a50;
+  --danger-hover: #ff3a2a;
+
+  /* Glow effects — vibrant pink shimmer */
+  --glow-jade: 0 0 20px rgba(232, 80, 122, 0.4), 0 0 40px rgba(232, 80, 122, 0.2);
+  --glow-crimson: 0 0 20px rgba(220, 90, 74, 0.4), 0 0 40px rgba(220, 90, 74, 0.2);
+  --glow-gold: 0 0 20px rgba(232, 184, 144, 0.4), 0 0 40px rgba(232, 184, 144, 0.2);
+  --glow-blue: 0 0 20px rgba(154, 175, 204, 0.4), 0 0 40px rgba(154, 175, 204, 0.2);
+  --glow-subtle: 0 0 10px rgba(232, 80, 122, 0.25);
+}
+
+html.sakura .cultivation-gradient {
+  background: linear-gradient(135deg, #f5f1f0, #e8e0de, #d8c8c0);
+}
+
+html.sakura .mist-overlay {
+  background: linear-gradient(180deg, transparent, rgba(250, 247, 246, 0.95));
+}
+
+html.sakura ::selection {
+  background: #e8507a;
+  color: #faf7f6;
+}
+
+html.sakura * {
+  scrollbar-color: #d4888c #faf7f6;
+}
+
+/* ===== Hide Number Input Spinners Globally ===== */
+
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ===== Mobile Safe Area & Responsive Utilities ===== */
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure inputs on mobile don't zoom */
+@media (max-width: 768px) {
+  input[type="number"],
+  input[type="text"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

@@ -1,65 +1,252 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import GlowButton from "@/components/ui/GlowButton";
+import GlowInput from "@/components/ui/GlowInput";
+import { useAuth } from "@/context/AuthContext";
+
+export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [isRegister, setIsRegister] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
+      const body = isRegister
+        ? { username, password, name }
+        : { username, password };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "An error occurred");
+        return;
+      }
+
+      // Save user session
+      if (data.user) {
+        login(data.user);
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setError("Connection failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Background mist layers */}
+      <div className="absolute inset-0 bg-gradient-to-br from-void-black via-ink-deep to-jade-deep/20" />
+      <div className="absolute inset-0 opacity-30">
+        <div
+          className="absolute top-0 left-1/4 w-96 h-96 bg-jade-deep/20 rounded-full blur-3xl animate-glow-pulse"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <div
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-mountain-blue/10 rounded-full blur-3xl animate-glow-pulse"
+          style={{ animationDelay: "1.5s" }}
+        />
+        <div
+          className="absolute top-1/3 right-1/3 w-64 h-64 bg-crimson-deep/10 rounded-full blur-3xl animate-glow-pulse"
+          style={{ animationDelay: "3s" }}
+        />
+      </div>
+
+      {/* Floating particles */}
+      {[...Array(6)].map((_, i) => {
+        // Use deterministic values based on index to avoid hydration mismatch
+        const randomSeed = (i * 12321) % 100;
+        const topOffset = 60 + (randomSeed % 20);
+        const xOffset = (randomSeed % 40) - 20;
+        const duration = 4 + (randomSeed % 3);
+
+        return (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-jade-glow/40 rounded-full"
+            animate={{
+              y: [0, -100, 0],
+              x: [0, xOffset, 0],
+              opacity: [0, 0.8, 0],
+            }}
+            transition={{
+              duration: duration,
+              repeat: Infinity,
+              delay: i * 0.8,
+            }}
+            style={{
+              left: `${15 + i * 14}%`,
+              top: `${topOffset}%`,
+            }}
+          />
+        );
+      })}
+
+      {/* Login Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md mx-4"
+      >
+        <div className="bg-ink-deep/80 backdrop-blur-xl border border-jade-deep/40 rounded-2xl p-8 glow-subtle">
+          {/* Title - bilingual */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-3xl font-bold text-jade-glow mb-1 tracking-wider">
+              修炼之路
+            </h1>
+            <p className="text-xs text-mist-mid tracking-[0.3em] uppercase">
+              Path of Cultivation
+            </p>
+            <div className="mt-4 w-16 h-px bg-gradient-to-r from-transparent via-jade-glow to-transparent mx-auto" />
+          </motion.div>
+
+          {/* Decorative subtitle */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center text-mist-dark text-xs mb-6 italic"
+          >
+            {isRegister ? "踏入修仙界 — Enter the realm of cultivation" : "欢迎回来，修士 — Welcome back, cultivator"}
+          </motion.p>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <GlowInput
+                label="道号 · Dao Name"
+                placeholder="Enter your cultivator name"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </motion.div>
+
+            {isRegister && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <GlowInput
+                  label="真名 · True Name"
+                  placeholder="Your display name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </motion.div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
             >
-              Learning
-            </a>{" "}
-            center.
+              <GlowInput
+                label="密码 · Secret Art"
+                type="password"
+                placeholder="Enter your secret art"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </motion.div>
+
+            {error && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-crimson-light text-xs text-center"
+              >
+                {error}
+              </motion.p>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="pt-2"
+            >
+              <GlowButton
+                type="submit"
+                variant="jade"
+                size="lg"
+                glow
+                className="w-full"
+                disabled={loading}
+              >
+                {loading
+                  ? "Channeling Qi..."
+                  : isRegister
+                  ? "Begin Cultivation 开始修炼"
+                  : "Enter the Sect 进入宗门"}
+              </GlowButton>
+            </motion.div>
+          </form>
+
+          {/* Toggle register/login */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-6 text-center"
+          >
+            <button
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setError("");
+              }}
+              className="text-xs text-mist-mid hover:text-jade-glow transition-colors"
+            >
+              {isRegister
+                ? "Already a cultivator? 已有账号 — Return to the sect"
+                : "New cultivator? 新弟子 — Join the sect"}
+            </button>
+          </motion.div>
+
+          {/* Bottom decoration */}
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="w-8 h-px bg-ink-light" />
+            <span className="text-[10px] text-mist-dark">天道酬勤</span>
+            <div className="w-8 h-px bg-ink-light" />
+          </div>
+          <p className="text-center text-[10px] text-mist-dark mt-1">
+            Heaven rewards the diligent
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </motion.div>
     </div>
   );
 }

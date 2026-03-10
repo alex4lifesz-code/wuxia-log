@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js build output
+.next
+out
+
+# Version control
+.git
+.gitignore
+
+# Environment files
+.env*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed in image)
+*.md
+LICENSE
+
+# Development files
+dev.db
+dev.db-journal
+test-db.js
+
+# Misc
+coverage
+.vercel
+*.tsbuildinfo

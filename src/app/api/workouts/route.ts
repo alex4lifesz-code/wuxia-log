@@ -1,0 +1,165 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    
+    const showAll = searchParams.get("showAll") === "true";
+    
+    console.log("GET /api/workouts - userId:", userId, "showAll:", showAll);
+
+    if (!userId) {
+      console.error("Missing userId parameter");
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    // Get workout sessions for the user, optionally limited to last 10
+    const workouts = await prisma.workout.findMany({
+      where: { userId },
+      include: {
+        simplifiedExercises: {
+          include: { exercise: true },
+          orderBy: { order: "asc" },
+        },
+      },
+      orderBy: { date: "desc" },
+      ...(showAll ? {} : { take: 10 }),
+    });
+    
+    console.log(`Found ${workouts.length} workouts for user ${userId}`);
+
+    return NextResponse.json({ workouts });
+  } catch (error) {
+    console.error("Workouts fetch error:", error);
+    return NextResponse.json({ error: "Failed to fetch workouts" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId, exerciseId, weight1, reps1, weight2, reps2, weight3, reps3, notes } = await req.json();
+
+    console.log("POST /api/workouts - Creating workout:", { userId, exerciseId, weight1, reps1 });
+
+    // Validation
+    if (!userId || !exerciseId) {
+      console.error("Missing userId or exerciseId");
+      return NextResponse.json(
+        { error: "User ID and exercise ID are required" },
+        { status: 400 }
+      );
+    }
+
+    // At least one set must have reps
+    if (!reps1 && !reps2 && !reps3) {
+      console.error("No reps provided");
+      return NextResponse.json(
+        { error: "At least one set with reps is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate reps values
+    const validateReps = (reps: any) => {
+      if (reps !== undefined && reps !== null) {
+        const repsNum = parseInt(reps);
+        if (repsNum <= 0 || repsNum > 500) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    if (!validateReps(reps1) || !validateReps(reps2) || !validateReps(reps3)) {
+      console.error("Invalid reps range");
+      return NextResponse.json(
+        { error: "Reps must be between 1 and 500" },
+        { status: 400 }
+      );
+    }
+
+    // Validate weight values
+    const validateWeight = (weight: any) => {
+      if (weight !== undefined && weight !== null) {
+        const weightNum = parseFloat(weight);
+        if (weightNum < 0 || weightNum > 10000) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    if (!validateWeight(weight1) || !validateWeight(weight2) || !validateWeight(weight3)) {
+      console.error("Invalid weight range");
+      return NextResponse.json(
+        { error: "Weight must be between 0 and 10000" },
+        { status: 400 }
+      );
+    }
+
+    // Verify exercise exists
+    const exercise = await prisma.exercise.findUnique({
+      where: { id: exerciseId }
+    });
+
+    if (!exercise) {
+      console.error("Exercise not found:", exerciseId);
+      return NextResponse.json(
+        { error: "Exercise not found" },
+        { status: 404 }
+      );
+    }
+
+    // Create workout with set-based exercise entry
+    const workout = await prisma.workout.create({
+      data: {
+        userId,
+        name: `${exercise.name} Training`,
+        totalXP: getDifficultyXP(exercise.difficulty),
+        simplifiedExercises: {
+          create: {
+            exerciseId,
+            weight1: weight1 ? parseFloat(weight1) : null,
+            reps1: reps1 ? parseInt(reps1) : null,
+            weight2: weight2 ? parseFloat(weight2) : null,
+            reps2: reps2 ? parseInt(reps2) : null,
+            weight3: weight3 ? parseFloat(weight3) : null,
+            reps3: reps3 ? parseInt(reps3) : null,
+            notes: notes || null,
+            order: 0,
+          }
+        },
+      },
+      include: {
+        simplifiedExercises: {
+          include: { exercise: true },
+        },
+      },
+    });
+
+    console.log("Workout created successfully:", workout.id);
+
+    return NextResponse.json({ 
+      success: true, 
+      workout: workout,
+      message: "Training session recorded successfully!" 
+    });
+    
+  } catch (error) {
+    console.error("Workout creation error:", error);
+    return NextResponse.json({ error: "Failed to create workout" }, { status: 500 });
+  }
+}
+
+// Helper function to calculate XP based on difficulty
+function getDifficultyXP(difficulty: string): number {
+  switch (difficulty.toLowerCase()) {
+    case 'beginner': return 10;
+    case 'intermediate': return 20;
+    case 'advanced': return 30;
+    case 'master': return 50;
+    default: return 10;
+  }
+}

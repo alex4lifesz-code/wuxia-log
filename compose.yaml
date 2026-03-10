@@ -1,0 +1,54 @@
+# ============================================
+# Wuxia Cultivation Tracker — Docker Compose
+# Optimised for Portainer deployment
+# ============================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wuxia-cultivation-tracker
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/cultivation.db
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      - wuxia_data:/app/data
+    networks:
+      - wuxia_network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.centurylabs.description=Wuxia Cultivation Workout Tracker"
+      - "com.centurylabs.version=1.0.0"
+
+volumes:
+  wuxia_data:
+    driver: local
+    name: wuxia_cultivation_data
+
+networks:
+  wuxia_network:
+    driver: bridge
+    name: wuxia_network
