@@ -22,12 +22,14 @@ export default function SwipeNavigation({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { setCollapsed, collapsed, isMobile } = useAppContext();
+  const { setCollapsed, collapsed, isMobile, isNativeApp } = useAppContext();
 
   const currentIndex = pageOrder.indexOf(pathname);
 
   const handlers = useSwipeable({
     onSwipedLeft: (eventData) => {
+      // Disable swipe navigation entirely in browser mode
+      if (!isNativeApp) return;
       // On mobile, only navigate if swipe started away from edges (avoid conflicts with panel gestures)
       if (isMobile && eventData.initial[0] < 50) return;
       if (currentIndex < pageOrder.length - 1) {
@@ -35,6 +37,7 @@ export default function SwipeNavigation({
       }
     },
     onSwipedRight: (eventData) => {
+      if (!isNativeApp) return;
       // On mobile, reserve left-edge swipes for sidebar panel access
       if (isMobile && eventData.initial[0] < 50) return;
       if (currentIndex > 0) {
@@ -42,9 +45,11 @@ export default function SwipeNavigation({
       }
     },
     onSwipedUp: () => {
+      if (!isNativeApp) return;
       if (!isMobile) setCollapsed(true);
     },
     onSwipedDown: () => {
+      if (!isNativeApp) return;
       if (!isMobile) setCollapsed(false);
     },
     trackMouse: false,

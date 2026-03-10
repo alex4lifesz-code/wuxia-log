@@ -6,16 +6,16 @@ import { useAppContext } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function FloatingMobileSidebar() {
-  const { getSortedNavItems, isMobile } = useAppContext();
+  const { getSortedNavItems, isMobile, isNativeApp } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
   const [isOpen, setIsOpen] = useState(false);
   const dragControls = useDragControls();
 
-  // Handle swipe gesture to open sidebar
+  // Handle swipe gesture to open sidebar — only in native APK
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || !isNativeApp) return;
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
@@ -51,7 +51,7 @@ export default function FloatingMobileSidebar() {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [isMobile, isOpen]);
+  }, [isMobile, isOpen, isNativeApp]);
 
   // Handle swipe to close
   const handleDragEnd = (_: any, info: PanInfo) => {
@@ -60,7 +60,8 @@ export default function FloatingMobileSidebar() {
     }
   };
 
-  if (!isMobile) return null;
+  // Only render in native APK mobile mode
+  if (!isMobile || !isNativeApp) return null;
 
   return (
     <>

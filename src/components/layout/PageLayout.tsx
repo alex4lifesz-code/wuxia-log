@@ -24,7 +24,7 @@ export default function PageLayout({
   subtitle,
   sidebarLabel,
 }: PageLayoutProps) {
-  const { panelPosition, isMobile } = useAppContext();
+  const { panelPosition, isMobile, isNativeApp } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const effectivePosition = isMobile ? "top" : panelPosition;
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -134,9 +134,9 @@ export default function PageLayout({
     }
   }, [isMobile]);
 
-  // Swipe from left edge to open sidebar on mobile
+  // Swipe from left edge to open sidebar on mobile (native APK only)
   useEffect(() => {
-    if (!isMobile || !sidebar) return;
+    if (!isMobile || !sidebar || !isNativeApp) return;
     let startX = 0;
     let startY = 0;
     const onTouchStart = (e: TouchEvent) => {
@@ -158,11 +158,11 @@ export default function PageLayout({
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [isMobile, sidebar, mobileSidebarOpen]);
+  }, [isMobile, sidebar, mobileSidebarOpen, isNativeApp]);
 
-  // Swipe from right edge to open Quick View on mobile
+  // Swipe from right edge to open Quick View on mobile (native APK only)
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || !isNativeApp) return;
     let startX = 0;
     let startY = 0;
     const screenW = typeof window !== "undefined" ? window.innerWidth : 400;
@@ -185,7 +185,7 @@ export default function PageLayout({
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [isMobile, mobileQuickViewOpen]);
+  }, [isMobile, mobileQuickViewOpen, isNativeApp]);
 
   // Resize handle element
   const resizeHandle = sidebar && !isMobile && effectivePosition !== "top" ? (
@@ -286,8 +286,8 @@ export default function PageLayout({
       {sidebarPosition === "right" && resizeHandle}
       {sidebarPosition === "right" && desktopSidebar}
 
-      {/* Mobile Quick View button — top-right corner */}
-      {isMobile && (
+      {/* Mobile Quick View button — top-right corner (native APK only) */}
+      {isMobile && isNativeApp && (
         <motion.div
           ref={qvFabRef}
           drag
@@ -314,8 +314,8 @@ export default function PageLayout({
         </motion.div>
       )}
 
-      {/* Mobile sidebar FAB — draggable */}
-      {isMobile && sidebar && (
+      {/* Mobile sidebar FAB — draggable (native APK only) */}
+      {isMobile && isNativeApp && sidebar && (
         <motion.div
           ref={sidebarFabRef}
           drag
@@ -342,9 +342,9 @@ export default function PageLayout({
         </motion.div>
       )}
 
-      {/* Mobile slide-in sidebar (page panel) */}
+      {/* Mobile slide-in sidebar (page panel) — native APK only */}
       <AnimatePresence>
-        {mobileSidebarOpen && isMobile && sidebar && (
+        {mobileSidebarOpen && isMobile && isNativeApp && sidebar && (
           <>
             <motion.div
               key="page-sidebar-backdrop"
@@ -386,7 +386,7 @@ export default function PageLayout({
 
       {/* Mobile slide-in Quick View panel */}
       <AnimatePresence>
-        {mobileQuickViewOpen && isMobile && (
+        {mobileQuickViewOpen && isMobile && isNativeApp && (
           <>
             <motion.div
               key="quickview-backdrop"

@@ -566,3 +566,23 @@ input[type="number"] {
     font-size: 16px;
   }
 }
+
+/* ===== Browser Desktop Mode Overrides ==============================
+   When `browser-desktop-mode` class is present on <html>, force a
+   desktop-width layout and suppress all mobile-specific visual
+   adaptations.  The APK (no class) retains full mobile behaviour.
+   =================================================================== */
+html.browser-desktop-mode {
+  /* Enforce a minimum body width matching the forced viewport */
+  min-width: 1280px;
+}
+
+html.browser-desktop-mode body {
+  min-width: 1280px;
+  overflow-x: auto;
+}
+
+/* Remove bottom-bar safe-area spacing in browser mode */
+html.browser-desktop-mode .safe-area-bottom {
+  padding-bottom: 0 !important;
+}

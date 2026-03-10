@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { NavItem, defaultNavItems } from "@/lib/constants";
+import { isNativePlatform } from "@/lib/platform";
 
 type ThemeMode = "dark" | "light";
 type ThemeStyle = "midnight-ink" | "mountain-mist" | "calligraphy" | "sakura";
@@ -16,6 +17,8 @@ interface AppState {
   currentPage: string;
   collapsed: boolean;
   isMobile: boolean;
+  /** True when running inside the Capacitor native APK, false in browsers */
+  isNativeApp: boolean;
   theme: ThemeMode;
   themeStyle: ThemeStyle;
   navigationMode: NavigationMode;
@@ -50,12 +53,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isNativeApp, setIsNativeApp] = useState(false);
   const [theme, setThemeState] = useState<ThemeMode>("dark");
   const [themeStyle, setThemeStyleState] = useState<ThemeStyle>("midnight-ink");
   const [navigationMode, setNavigationModeState] = useState<NavigationMode>("side");
   const [viewportMode, setViewportModeState] = useState<ViewportMode>("auto");
   const [topPanelExpanded, setTopPanelExpandedState] = useState(true);
   const [trainingMode, setTrainingModeState] = useState<TrainingMode>("simplified");
+
+  // Detect native vs browser platform on mount
+  useEffect(() => {
+    setIsNativeApp(isNativePlatform());
+  }, []);
 
   // Load saved state from localStorage
   useEffect(() => {
@@ -146,11 +155,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Handle responsive layout changes (fixes bidirectional bug)
+  // In browser (non-native) mode, always force desktop regardless of screen size.
   useEffect(() => {
     const checkSize = () => {
       const windowWidth = window.innerWidth;
       const actualIsMobileNow = windowWidth < 768;
-      
+
+      // ---------- BROWSER MODE: always desktop ----------
+      if (!isNativeApp) {
+        setIsMobile(false);
+        setCollapsed(false);
+        if (navigationMode === "side") {
+          setPanelPosition("left");
+        } else {
+          setPanelPosition("top");
+        }
+        setTopPanelExpandedState(true);
+        return;
+      }
+
+      // ---------- NATIVE APK: honour viewport overrides ----------
       // If forcing a specific viewport mode, override the actual size
       if (viewportMode === "mobile") {
         setIsMobile(true);
@@ -186,7 +210,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     checkSize();
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
-  }, [viewportMode, navigationMode]);
+  }, [viewportMode, navigationMode, isNativeApp]);
 
   // Persist state changes
   useEffect(() => {
@@ -249,6 +273,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentPage,
         collapsed,
         isMobile,
+        isNativeApp,
         theme,
         themeStyle,
         navigationMode,

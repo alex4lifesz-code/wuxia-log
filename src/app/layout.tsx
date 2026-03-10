@@ -68,6 +68,12 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('cultivation-theme');if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.classList.add('light')}var s=localStorage.getItem('cultivation-theme-style');if(s&&['midnight-ink','mountain-mist','calligraphy','sakura'].indexOf(s)!==-1){document.documentElement.classList.add(s)}}catch(e){}})()`
           }}
         />
+        {/* Platform-aware viewport: force desktop width in browsers, keep mobile viewport in APK */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var isNative=false;if(window.Capacitor&&window.Capacitor.isNativePlatform){isNative=window.Capacitor.isNativePlatform()}else if(window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform()!=='web'){isNative=true}else if(window.Capacitor&&window.Capacitor.platform&&window.Capacitor.platform!=='web'){isNative=true}else if(/; wv\\)/.test(navigator.userAgent)&&/Android/.test(navigator.userAgent)){isNative=true}if(!isNative){var vp=document.querySelector('meta[name="viewport"]');if(vp){vp.setAttribute('content','width=1280,initial-scale=0.25,user-scalable=yes')}else{var m=document.createElement('meta');m.name='viewport';m.content='width=1280,initial-scale=0.25,user-scalable=yes';document.head.appendChild(m)}document.documentElement.classList.add('browser-desktop-mode')}}catch(e){}})()`
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${cinzel.variable} ${notoSerif.variable} ${crimsonText.variable} ${maShanZheng.variable} antialiased bg-void-black text-cloud-white transition-colors duration-500`}

@@ -6,15 +6,15 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function BottomBar() {
-  const { getSortedNavItems, isMobile, viewportMode } = useAppContext();
+  const { getSortedNavItems, isMobile, viewportMode, isNativeApp } = useAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Only show on mobile layout
+  // Only show on mobile layout AND only in native APK
   const effectiveMobile = isMobile || viewportMode === "mobile";
-  if (!effectiveMobile) return null;
+  if (!isNativeApp || !effectiveMobile) return null;
 
   // Primary 3-item navigation: Dao Hall, Training Grounds, Technique Scroll
   const primaryItems = [
