@@ -92,27 +92,11 @@ function TopBar() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // On mobile/collapsed, show only the collapsible tab indicator with enhanced functionality
+  // On mobile/collapsed, the Quick View panel is accessed via the info icon in PageLayout
   if (collapsed) {
     return (
       <>
-        <motion.div
-          initial={{ y: -30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="relative w-full flex justify-center z-50"
-        >
-          <motion.button
-            onClick={() => setTopPanelExpanded(!topPanelExpanded)}
-            whileHover={{ y: 2 }}
-            whileTap={{ y: 1 }}
-            className="w-20 h-2.5 bg-gradient-to-r from-jade-glow/60 to-jade-light/60 rounded-b-full border-b border-jade-glow/40 shadow-lg shadow-jade-glow/20 hover:shadow-jade-glow/40 transition-shadow"
-            animate={topPanelExpanded ? {} : { y: [0, 4, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            title="Quick View"
-          />
-        </motion.div>
-        
-        {/* Quick View panel — hidden by default, revealed via tap */}
+        {/* Quick View panel — hidden by default, revealed via icon tap in PageLayout */}
         <AnimatePresence>
           {topPanelExpanded && (
             <motion.div

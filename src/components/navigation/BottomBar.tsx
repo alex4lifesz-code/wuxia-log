@@ -121,12 +121,13 @@ function BottomBar() {
                 onClick={() => router.push(item.path)}
                 className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                    ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
                     : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
                 }`}
                 style={{
                   willChange: 'transform',
                   transform: isActive ? 'translateZ(0)' : undefined,
+                  boxShadow: isActive ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
                 }}
               >
                 <motion.span 
@@ -144,9 +145,9 @@ function BottomBar() {
                 {isActive && (
                   <motion.div
                     layoutId="bottomBarIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
                     style={{
-                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                      boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
                     }}
                   />
                 )}
@@ -154,7 +155,7 @@ function BottomBar() {
             );
           })}
 
-          {/* Center drawer button — visually distinct, elevated */}
+          {/* Center drawer button — visually distinct, elevated rectangular */}
           <motion.button
             whileTap={{ scale: 0.85 }}
             animate={{
@@ -166,12 +167,15 @@ function BottomBar() {
               damping: 20,
             }}
             onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className={`relative flex items-center justify-center w-14 h-14 -mt-5 rounded-full border-2 shadow-xl transition-all duration-300 ${
+            className={`relative flex items-center justify-center w-16 border-2 shadow-xl transition-all duration-300 ${
               mobileSidebarOpen
                 ? "bg-jade-deep border-jade-glow shadow-jade-glow/40"
                 : "bg-gradient-to-br from-jade-deep to-ink-dark border-jade-glow/50 shadow-jade-glow/20 hover:shadow-jade-glow/30"
             }`}
             style={{
+              height: '52px',
+              marginTop: '-11.3px',
+              borderRadius: '14px',
               willChange: 'transform',
               boxShadow: mobileSidebarOpen
                 ? '0 0 20px rgba(52, 211, 153, 0.5), 0 4px 12px rgba(0,0,0,0.4)'
@@ -209,12 +213,13 @@ function BottomBar() {
                 onClick={() => router.push(item.path)}
                 className={`relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                    ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
                     : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
                 }`}
                 style={{
                   willChange: 'transform',
                   transform: isActive ? 'translateZ(0)' : undefined,
+                  boxShadow: isActive ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
                 }}
               >
                 <motion.span 
@@ -232,9 +237,9 @@ function BottomBar() {
                 {isActive && (
                   <motion.div
                     layoutId="bottomBarIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
                     style={{
-                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                      boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
                     }}
                   />
                 )}
@@ -258,12 +263,13 @@ function BottomBar() {
             onClick={() => setMenuOpen(!menuOpen)}
             className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
               menuOpen
-                ? "text-jade-light bg-jade-deep/30 shadow-lg shadow-jade-glow/20"
+                ? "text-jade-light bg-jade-deep/40 shadow-lg shadow-jade-glow/40"
                 : "text-mist-mid hover:text-mist-light hover:bg-ink-mid/50"
             }`}
             style={{
               willChange: 'transform',
               transform: menuOpen ? 'translateZ(0)' : undefined,
+              boxShadow: menuOpen ? '0 0 16px rgba(52, 211, 153, 0.35), 0 0 6px rgba(52, 211, 153, 0.2)' : undefined,
             }}
           >
             <motion.span 
@@ -283,9 +289,9 @@ function BottomBar() {
             {menuOpen && (
               <motion.div
                 layoutId="bottomBarIndicator"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-jade-glow/50 via-jade-glow to-jade-glow/50 rounded-full"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gradient-to-r from-jade-glow/60 via-jade-glow to-jade-glow/60 rounded-full"
                 style={{
-                  boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                  boxShadow: '0 0 14px rgba(52, 211, 153, 0.8), 0 0 6px rgba(52, 211, 153, 0.5)',
                 }}
               />
             )}

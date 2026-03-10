@@ -21,7 +21,7 @@ export default function PageLayout({
   subtitle,
   sidebarLabel,
 }: PageLayoutProps) {
-  const { panelPosition, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
+  const { panelPosition, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen, topPanelExpanded, setTopPanelExpanded } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const effectivePosition = isMobile ? "top" : panelPosition;
   const [mobileQuickViewOpen, setMobileQuickViewOpen] = useState(false);
@@ -200,7 +200,7 @@ export default function PageLayout({
       {/* Mobile Quick View button — top-right corner (native APK only) */}
       {isMobile && isNativeApp && (
         <div
-          className="fixed top-14 right-3 z-60"
+          className="fixed top-14 right-3 z-60 flex flex-col items-center gap-2"
           style={{ zIndex: 60 }}
         >
           <motion.button
@@ -215,6 +215,21 @@ export default function PageLayout({
           >
             <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+            </svg>
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setTopPanelExpanded(!topPanelExpanded)}
+            className={`w-9 h-9 rounded-full border flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 ${
+              topPanelExpanded
+                ? "bg-jade-deep/90 border-jade-glow/60 shadow-jade-glow/30"
+                : "bg-ink-dark/90 border-jade-glow/30"
+            }`}
+            title="Cultivation Stats"
+            style={{ willChange: 'transform' }}
+          >
+            <svg className={`w-4 h-4 transition-colors duration-200 ${topPanelExpanded ? "text-jade-glow" : "text-jade-light"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </motion.button>
         </div>
