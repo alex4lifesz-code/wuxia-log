@@ -66,6 +66,8 @@ export interface DisplaySettings {
   recentSessionsDays: number;
   // Column colour differentiation for W/R columns
   columnColorsEnabled: boolean;
+  // Hide all gamification/experience content (XP, realms, progression)
+  gamificationVisible: boolean;
 }
 
 const DEFAULT_SETTINGS: DisplaySettings = {
@@ -92,6 +94,7 @@ const DEFAULT_SETTINGS: DisplaySettings = {
   sidebarLoreVisible: true,
   recentSessionsDays: 0,
   columnColorsEnabled: true,
+  gamificationVisible: true,
 };
 
 const STORAGE_KEY = "cultivateos-display-settings";

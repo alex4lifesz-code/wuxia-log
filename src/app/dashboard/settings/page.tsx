@@ -83,6 +83,7 @@ function SettingsSidebar({ onLogout }: { onLogout: () => void }) {
           <SettingRow label="Viewport" value={viewportMode.charAt(0).toUpperCase() + viewportMode.slice(1)} color="text-mountain-blue-glow" />
           <SettingRow label="Panel Position" value={settings.sidebarPosition === "left" ? "Left" : "Right"} color="text-mountain-blue-glow" />
           <SettingRow label="Quick View" value={settings.rightPanelVisible ? "Visible" : "Hidden"} color={settings.rightPanelVisible ? "text-mountain-blue-glow" : "text-mist-dark"} />
+          <SettingRow label="Gamification" value={(settings.gamificationVisible ?? true) ? "Visible" : "Hidden"} color={(settings.gamificationVisible ?? true) ? "text-mountain-blue-glow" : "text-mist-dark"} />
           <SettingRow label="Date Format" value={dateLabels[settings.dateFormat] || settings.dateFormat} color="text-mountain-blue-glow" />
         </div>
       </div>
@@ -487,6 +488,15 @@ export default function SettingsPage() {
                     <span className="text-[11px] text-mist-light shrink-0">Quick View panel</span>
                     <button type="button" role="switch" aria-checked={settings.rightPanelVisible} onClick={() => updateSettings({ rightPanelVisible: !settings.rightPanelVisible })} className={`relative shrink-0 w-8 h-[18px] rounded-full transition-colors ${settings.rightPanelVisible ? "bg-jade-glow" : "bg-ink-light"}`}>
                       <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-cloud-white shadow transition-transform ${settings.rightPanelVisible ? "translate-x-[14px]" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 py-1.5">
+                    <div className="min-w-0">
+                      <span className="text-[11px] text-mist-light shrink-0 block">Experience &amp; progression</span>
+                      <span className="text-[9px] text-mist-dark block mt-0.5">Hide XP, realms, Quick View, and all gamification content</span>
+                    </div>
+                    <button type="button" role="switch" aria-checked={settings.gamificationVisible ?? true} onClick={() => updateSettings({ gamificationVisible: !(settings.gamificationVisible ?? true) })} className={`relative shrink-0 w-8 h-[18px] rounded-full transition-colors ${(settings.gamificationVisible ?? true) ? "bg-jade-glow" : "bg-ink-light"}`}>
+                      <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-cloud-white shadow transition-transform ${(settings.gamificationVisible ?? true) ? "translate-x-[14px]" : "translate-x-0"}`} />
                     </button>
                   </div>
                 </div>

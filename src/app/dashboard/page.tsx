@@ -90,6 +90,8 @@ const CULTIVATOR_COLOR_OPTIONS = [
 ];
 
 function DashboardSidebar({ stats, allUsers, userColors, onColorChange }: { stats: { sessions: number; techniques: number; streak: number; realm: string }; allUsers: User[]; userColors: Record<string, string>; onColorChange: (userId: string, color: string) => void }) {
+  const { settings: dsSettings } = useDisplaySettings();
+  const gamificationVisible = dsSettings.gamificationVisible ?? true;
   return (
     <div className="space-y-3">
       <GlowButton variant="jade" size="sm" glow className="w-full">
@@ -110,14 +112,18 @@ function DashboardSidebar({ stats, allUsers, userColors, onColorChange }: { stat
             <span className="text-mist-mid">Techniques Known</span>
             <span className="text-cloud-white">{stats.techniques}</span>
           </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-mist-mid">Check-In Streak</span>
-            <span className="text-jade-glow font-semibold">{stats.streak} days</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-mist-mid">Realm</span>
-            <span className="text-gold-dim uppercase">{stats.realm}</span>
-          </div>
+          {gamificationVisible && (
+            <>
+              <div className="flex justify-between text-xs">
+                <span className="text-mist-mid">Check-In Streak</span>
+                <span className="text-jade-glow font-semibold">{stats.streak} days</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-mist-mid">Realm</span>
+                <span className="text-gold-dim uppercase">{stats.realm}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -791,7 +797,9 @@ export default function DaoHallPage() {
           <div>
             <h3 className="text-sm text-jade-glow uppercase mb-3">Quick Actions</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {quickActions.map((action, i) => (
+              {quickActions
+                .filter((action) => (settings.gamificationVisible ?? true) || action.path !== "/dashboard/progress")
+                .map((action, i) => (
                 <motion.div
                   key={action.path}
                   initial={{ opacity: 0, y: 10 }}
@@ -814,7 +822,7 @@ export default function DaoHallPage() {
           </div>
 
           {/* XP Feedback */}
-          {xpFeedback.show && (
+          {(settings.gamificationVisible ?? true) && xpFeedback.show && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}

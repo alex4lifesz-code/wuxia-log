@@ -112,6 +112,7 @@ export default function HistoryPage() {
   const { user } = useAuth();
   const { settings } = useDisplaySettings();
   const dateFormat = settings.dateFormat || "dd-mmm-yyyy";
+  const gamificationVisible = settings.gamificationVisible ?? true;
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, thisWeek: 0, thisMonth: 0 });
@@ -350,19 +351,21 @@ export default function HistoryPage() {
               </GlowCard>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <GlowCard glow="gold" className="p-4">
-                <SimpleBarChart
-                  title="Recent XP Gains"
-                  data={xpData}
-                  max={xpData.length > 0 ? Math.max(...xpData.map((d) => d.value)) : 100}
-                />
-              </GlowCard>
-            </motion.div>
+            {gamificationVisible && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <GlowCard glow="gold" className="p-4">
+                  <SimpleBarChart
+                    title="Recent XP Gains"
+                    data={xpData}
+                    max={xpData.length > 0 ? Math.max(...xpData.map((d) => d.value)) : 100}
+                  />
+                </GlowCard>
+              </motion.div>
+            )}
           </div>
 
           {/* Summary Stats */}
@@ -377,18 +380,22 @@ export default function HistoryPage() {
                   <div className="text-2xl font-bold text-jade-glow">{stats.total}</div>
                   <div className="text-xs text-mist-mid mt-1">Total Sessions</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gold-glow">
-                    {workouts.reduce((sum, w) => sum + w.totalXP, 0).toLocaleString()}
-                  </div>
-                  <div className="text-xs text-mist-mid mt-1">Total XP Earned</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-crimson-glow">
-                    {workouts.length > 0 ? Math.round(workouts.reduce((sum, w) => sum + w.totalXP, 0) / workouts.length) : 0}
-                  </div>
-                  <div className="text-xs text-mist-mid mt-1">Avg XP/Session</div>
-                </div>
+                {gamificationVisible && (
+                  <>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gold-glow">
+                        {workouts.reduce((sum, w) => sum + w.totalXP, 0).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-mist-mid mt-1">Total XP Earned</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-crimson-glow">
+                        {workouts.length > 0 ? Math.round(workouts.reduce((sum, w) => sum + w.totalXP, 0) / workouts.length) : 0}
+                      </div>
+                      <div className="text-xs text-mist-mid mt-1">Avg XP/Session</div>
+                    </div>
+                  </>
+                )}
                 <div className="text-center">
                   <div className="text-2xl font-bold text-cloud-white">{exerciseStats.length}</div>
                   <div className="text-xs text-mist-mid mt-1">Unique Techniques</div>
@@ -484,7 +491,7 @@ export default function HistoryPage() {
                         <span className={hasWorkouts ? 'text-gold-light font-bold' : ''}>
                           {day}
                         </span>
-                        {hasWorkouts && (
+                        {hasWorkouts && gamificationVisible && (
                           <span className="text-[9px] text-gold-glow mt-0.5">
                             +{totalXP} XP
                           </span>
@@ -733,33 +740,35 @@ export default function HistoryPage() {
                           })()}
 
                           {/* XP Summary - Traditional Seal Style */}
-                          <div className="flex justify-center mb-8">
-                            <div 
-                              className="relative px-8 py-4 rounded-lg"
-                              style={{
-                                background: 'linear-gradient(135deg, rgba(196, 168, 74, 0.15), rgba(139, 90, 60, 0.15))',
-                                border: '2px solid rgba(196, 168, 74, 0.4)',
-                                boxShadow: 'inset 0 0 20px rgba(196, 168, 74, 0.2)'
-                              }}
-                            >
-                              <div className="text-center">
-                                <p className="text-xs text-gold-glow uppercase tracking-widest mb-1" style={{ fontFamily: "'Cinzel', serif" }}>
-                                  Cultivation Progress
-                                </p>
-                                <p className="text-4xl font-bold text-gold-light" style={{ fontFamily: "'Cinzel', serif" }}>
-                                  +{totalXP}
-                                </p>
-                                <p className="text-xs text-mist-mid uppercase tracking-wider mt-1" style={{ fontFamily: "'Cinzel', serif" }}>
-                                  Experience Points
-                                </p>
+                          {gamificationVisible && (
+                            <div className="flex justify-center mb-8">
+                              <div 
+                                className="relative px-8 py-4 rounded-lg"
+                                style={{
+                                  background: 'linear-gradient(135deg, rgba(196, 168, 74, 0.15), rgba(139, 90, 60, 0.15))',
+                                  border: '2px solid rgba(196, 168, 74, 0.4)',
+                                  boxShadow: 'inset 0 0 20px rgba(196, 168, 74, 0.2)'
+                                }}
+                              >
+                                <div className="text-center">
+                                  <p className="text-xs text-gold-glow uppercase tracking-widest mb-1" style={{ fontFamily: "'Cinzel', serif" }}>
+                                    Cultivation Progress
+                                  </p>
+                                  <p className="text-4xl font-bold text-gold-light" style={{ fontFamily: "'Cinzel', serif" }}>
+                                    +{totalXP}
+                                  </p>
+                                  <p className="text-xs text-mist-mid uppercase tracking-wider mt-1" style={{ fontFamily: "'Cinzel', serif" }}>
+                                    Experience Points
+                                  </p>
+                                </div>
+                                {/* Decorative corner elements */}
+                                <div className="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 border-gold-glow/60" />
+                                <div className="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 border-gold-glow/60" />
+                                <div className="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 border-gold-glow/60" />
+                                <div className="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 border-gold-glow/60" />
                               </div>
-                              {/* Decorative corner elements */}
-                              <div className="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 border-gold-glow/60" />
-                              <div className="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 border-gold-glow/60" />
-                              <div className="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 border-gold-glow/60" />
-                              <div className="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 border-gold-glow/60" />
                             </div>
-                          </div>
+                          )}
 
                           {/* Workout Sessions */}
                           <div className="space-y-4">
@@ -786,11 +795,13 @@ export default function HistoryPage() {
                                       {new Date(workout.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="text-lg font-bold text-gold-glow">
-                                      +{workout.totalXP} XP
+                                  {gamificationVisible && (
+                                    <div className="text-right">
+                                      <div className="text-lg font-bold text-gold-glow">
+                                        +{workout.totalXP} XP
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
 
                                 <div className="space-y-2">
@@ -877,9 +888,11 @@ export default function HistoryPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-jade-glow">
-                          +{workout.totalXP} XP
-                        </div>
+                        {gamificationVisible && (
+                          <div className="text-lg font-bold text-jade-glow">
+                            +{workout.totalXP} XP
+                          </div>
+                        )}
                         <div className="text-xs text-mist-dark">
                           {allExercises.length} techniques
                         </div>

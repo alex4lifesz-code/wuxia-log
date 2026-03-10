@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useState, memo, useCallback, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -27,9 +28,11 @@ const NAV_ICON_MAP: Record<string, ReactNode> = {
 function BottomBar() {
   const { getSortedNavItems, isMobile, viewportMode, isNativeApp, setMobileSidebarOpen, mobileSidebarOpen, activeDrawerClose } = useAppContext();
   const { logout } = useAuth();
+  const { settings } = useDisplaySettings();
+  const gamificationVisible = settings.gamificationVisible ?? true;
   const router = useRouter();
   const pathname = usePathname();
-  const items = getSortedNavItems();
+  const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const effectiveMobile = isMobile || viewportMode === "mobile";

@@ -10,6 +10,10 @@ function RightPanel() {
   const { collapsed, isMobile, isNativeApp } = useAppContext();
   const { settings, updateSettings } = useDisplaySettings();
   const visible = settings.rightPanelVisible;
+  const gamificationVisible = settings.gamificationVisible ?? true;
+
+  // Hide entire panel when gamification is disabled
+  if (!gamificationVisible) return null;
 
   // On mobile native, the Quick View panel is handled by PageLayout slide-in
   if (isMobile && isNativeApp) return null;

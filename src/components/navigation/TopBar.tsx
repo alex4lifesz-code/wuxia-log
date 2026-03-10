@@ -5,6 +5,7 @@ import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import DisplaySettingsPopup from "@/components/workout/DisplaySettingsPopup";
 
 interface Stats {
@@ -17,6 +18,8 @@ interface Stats {
 function TopBar() {
   const { getSortedNavItems, collapsed, isMobile, topPanelExpanded, setTopPanelExpanded, setCollapsed, panelPosition, isNativeApp } = useAppContext();
   const { user } = useAuth();
+  const { settings } = useDisplaySettings();
+  const gamificationVisible = settings.gamificationVisible ?? true;
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
@@ -99,6 +102,8 @@ function TopBar() {
 
   // Mobile: collapsed Quick View panel with scroll-based elevation
   if (collapsed) {
+    // When gamification is hidden, don't render the mobile stats panel at all
+    if (!gamificationVisible) return null;
     return (
       <>
         <AnimatePresence>
@@ -273,25 +278,29 @@ function TopBar() {
             <div className="text-xs text-mist-dark animate-pulse">Loading…</div>
           ) : (
             <>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-mist-dark">✨ XP:</span>
-                <span className="text-xs font-bold text-jade-glow">{stats.xp}</span>
-              </div>
-              <div className="h-5 w-px bg-ink-light" />
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-mist-dark">🏔️ Realm:</span>
-                <span className="text-xs font-bold text-gold-glow">{stats.realm}</span>
-              </div>
-              <div className="h-5 w-px bg-ink-light" />
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-mist-dark">🔥 Streak:</span>
-                <span className="text-xs font-bold text-crimson-glow">{stats.streak} days</span>
-              </div>
-              <div className="h-5 w-px bg-ink-light" />
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-mist-dark">⚔️ Sessions:</span>
-                <span className="text-xs font-bold text-stone-glow">{stats.sessions}</span>
-              </div>
+              {gamificationVisible && (
+                <>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-mist-dark">✨ XP:</span>
+                    <span className="text-xs font-bold text-jade-glow">{stats.xp}</span>
+                  </div>
+                  <div className="h-5 w-px bg-ink-light" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-mist-dark">🏔️ Realm:</span>
+                    <span className="text-xs font-bold text-gold-glow">{stats.realm}</span>
+                  </div>
+                  <div className="h-5 w-px bg-ink-light" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-mist-dark">🔥 Streak:</span>
+                    <span className="text-xs font-bold text-crimson-glow">{stats.streak} days</span>
+                  </div>
+                  <div className="h-5 w-px bg-ink-light" />
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-mist-dark">⚔️ Sessions:</span>
+                    <span className="text-xs font-bold text-stone-glow">{stats.sessions}</span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

@@ -4,15 +4,18 @@ import { motion, Reorder } from "framer-motion";
 import { useState, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useRouter, usePathname } from "next/navigation";
 import { NavItem } from "@/lib/constants";
 
 function LeftSidebar() {
   const { getSortedNavItems, collapsed, isMobile, reorderNavItems } = useAppContext();
   const { logout } = useAuth();
+  const { settings } = useDisplaySettings();
+  const gamificationVisible = settings.gamificationVisible ?? true;
   const router = useRouter();
   const pathname = usePathname();
-  const items = getSortedNavItems();
+  const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
   const [isDragging, setIsDragging] = useState(false);
 
   // Hide on mobile or when collapsed to reduce visual noise

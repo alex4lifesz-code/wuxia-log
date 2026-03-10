@@ -27,6 +27,7 @@ function PageLayout({
   const [mobileQuickViewOpen, setMobileQuickViewOpen] = useState(false);
   const sidebarPosition = settings.sidebarPosition || "left";
   const sidebarWidth = settings.sidebarWidth || 320;
+  const gamificationVisible = settings.gamificationVisible ?? true;
 
   // Resize state
   const [isResizing, setIsResizing] = useState(false);
@@ -196,7 +197,7 @@ function PageLayout({
       {sidebarPosition === "right" && desktopSidebar}
 
       {/* Mobile action buttons — top-right */}
-      {mobileMode && (
+      {mobileMode && gamificationVisible && (
         <div
           className="fixed top-3 right-3 z-60 flex items-center gap-2"
           style={{ zIndex: 60 }}
@@ -284,7 +285,7 @@ function PageLayout({
 
       {/* ── Mobile slide-in Quick View (right panel) ── */}
       <AnimatePresence>
-        {mobileQuickViewOpen && mobileMode && (
+        {mobileQuickViewOpen && mobileMode && gamificationVisible && (
           <>
             <motion.div
               key="quickview-backdrop"
