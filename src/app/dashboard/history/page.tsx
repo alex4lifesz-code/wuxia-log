@@ -126,13 +126,11 @@ export default function HistoryPage() {
 
   useEffect(() => {
     const fetchWorkouts = async () => {
+      if (!user?.id) return;
       try {
-        const res = await fetch("/api/workouts?mode=combined");
+        const res = await fetch(`/api/workouts?userId=${user.id}&showAll=true`);
         const data = await res.json();
-        const allWorkouts = data.workouts || [];
-        
-        // Filter for current user
-        const userWorkouts = allWorkouts.filter((w: Workout) => w.userId === user?.id);
+        const userWorkouts = data.workouts || [];
         
         setWorkouts(userWorkouts);
 

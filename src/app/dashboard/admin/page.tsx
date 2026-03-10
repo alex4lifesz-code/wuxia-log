@@ -9,6 +9,7 @@ import GlowCard from "@/components/ui/GlowCard";
 import { GlowModal } from "@/components/ui/GlowCard";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import DataManagement from "@/components/admin/DataManagement";
 
 interface AdminUser {
   id: string;
@@ -64,7 +65,7 @@ export default function AdminPanelPage() {
     try {
       const [usersRes, workoutsRes, exercisesRes, checkinsRes] = await Promise.all([
         fetch("/api/users"),
-        fetch("/api/workouts"),
+        fetch("/api/workouts?showAll=true"),
         fetch("/api/exercises"),
         fetch("/api/checkins"),
       ]);
@@ -260,6 +261,9 @@ export default function AdminPanelPage() {
               </table>
             </div>
           </GlowCard>
+
+          {/* Data Management Section */}
+          <DataManagement />
         </div>
       )}
 

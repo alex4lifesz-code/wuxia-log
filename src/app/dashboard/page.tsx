@@ -677,7 +677,7 @@ export default function DaoHallPage() {
           fetch("/api/checkins"),
           fetch("/api/users"),
           fetch(`/api/users/experience?userId=${user.id}`),
-          fetch("/api/workouts"),
+          fetch(`/api/workouts?userId=${user.id}`),
           fetch("/api/exercises"),
         ]);
         const checkinsData = await checkinsRes.json();

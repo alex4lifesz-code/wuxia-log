@@ -5,19 +5,23 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
-    
     const showAll = searchParams.get("showAll") === "true";
     
     console.log("GET /api/workouts - userId:", userId, "showAll:", showAll);
 
-    if (!userId) {
-      console.error("Missing userId parameter");
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    if (!userId && !showAll) {
+      console.error("Missing userId parameter - unauthenticated request");
+      return NextResponse.json(
+        { error: "Authentication required. Please log in." },
+        { status: 401 }
+      );
     }
 
-    // Get workout sessions for the user, optionally limited to last 10
+    // Build query: filter by userId if provided, or return all if showAll=true
+    const whereClause = userId ? { userId } : {};
+
     const workouts = await prisma.workout.findMany({
-      where: { userId },
+      where: whereClause,
       include: {
         simplifiedExercises: {
           include: { exercise: true },
@@ -28,7 +32,7 @@ export async function GET(req: NextRequest) {
       ...(showAll ? {} : { take: 10 }),
     });
     
-    console.log(`Found ${workouts.length} workouts for user ${userId}`);
+    console.log(`Found ${workouts.length} workouts${userId ? ` for user ${userId}` : ' (all users)'}`);
 
     return NextResponse.json({ workouts });
   } catch (error) {

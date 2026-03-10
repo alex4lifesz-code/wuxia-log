@@ -63,10 +63,10 @@ export default function TopBar() {
         const expData = await expRes.json();
         const userExp = expData.user?.experience || 0;
 
-        // Fetch workouts
-        const workoutRes = await fetch("/api/workouts");
+        // Fetch workouts for the current user
+        const workoutRes = await fetch(`/api/workouts?userId=${user.id}`);
         const workoutData = await workoutRes.json();
-        const userWorkouts = (workoutData.workouts || []).filter((w: any) => w.userId === user.id);
+        const userWorkouts = workoutData.workouts || [];
 
         // Fetch check-ins for streak
         const checkinsRes = await fetch("/api/checkins");
