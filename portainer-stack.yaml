@@ -15,10 +15,7 @@
 services:
   # ── Application ──────────────────────────────
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: wuxia-cultivation-tracker:${APP_VERSION:-2.0.0}
+    image: ghcr.io/alex4lifesz-code/wuxia-log:${APP_VERSION:-2.0.0}
     container_name: wuxia-cultivation-tracker
     restart: always
     ports:
