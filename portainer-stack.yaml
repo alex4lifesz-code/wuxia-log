@@ -15,7 +15,7 @@
 services:
   # ── Application ──────────────────────────────
   app:
-    image: ghcr.io/alex4lifesz-code/wuxia-log:${APP_VERSION:-2.1.2}
+    image: ghcr.io/alex4lifesz-code/wuxia-log:${APP_VERSION:-2.2.0}
     container_name: wuxia-cultivation-tracker
     restart: always
     ports:
