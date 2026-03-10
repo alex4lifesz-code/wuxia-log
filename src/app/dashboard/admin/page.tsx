@@ -41,7 +41,7 @@ function AdminSidebar() {
 }
 
 export default function AdminPanelPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<SystemStats>({
@@ -56,6 +56,8 @@ export default function AdminPanelPage() {
   const [newName, setNewName] = useState("");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showUserDetailModal, setShowUserDetailModal] = useState(false);
+  const [editingName, setEditingName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Check if user is admin (simplified check - should be based on role in production)
@@ -133,6 +135,34 @@ export default function AdminPanelPage() {
       }
     } catch (err) {
       console.error("Failed to delete user:", err);
+    }
+  };
+
+  const updateDisplayName = async (userId: string, newDisplayName: string) => {
+    if (!newDisplayName.trim()) return;
+    setIsSavingName(true);
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newDisplayName.trim() }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // If updating own name, refresh auth state
+        if (user && userId === user.id) {
+          login({ ...user, name: data.user.name });
+        }
+        fetchData();
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser({ ...selectedUser, name: data.user.name });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update display name:", err);
+    } finally {
+      setIsSavingName(false);
     }
   };
 
@@ -310,6 +340,7 @@ export default function AdminPanelPage() {
         onClose={() => {
           setShowUserDetailModal(false);
           setSelectedUser(null);
+          setEditingName("");
         }}
         title={selectedUser?.name || "User Details"}
       >
@@ -339,6 +370,25 @@ export default function AdminPanelPage() {
               <p className="text-sm text-mist-light mt-1">
                 {new Date(selectedUser.createdAt).toLocaleDateString()}
               </p>
+            </div>
+
+            <div className="pt-2 border-t border-ink-light">
+              <p className="text-xs text-mist-dark uppercase mb-2">Display Name</p>
+              <div className="flex gap-2">
+                <GlowInput
+                  placeholder="New display name..."
+                  value={editingName || selectedUser.name}
+                  onChange={(e) => setEditingName(e.target.value)}
+                />
+                <GlowButton
+                  variant="jade"
+                  size="sm"
+                  disabled={isSavingName || !editingName.trim() || editingName.trim() === selectedUser.name}
+                  onClick={() => updateDisplayName(selectedUser.id, editingName)}
+                >
+                  {isSavingName ? "..." : "Save"}
+                </GlowButton>
+              </div>
             </div>
 
             <div className="flex gap-2 pt-4 border-t border-ink-light">

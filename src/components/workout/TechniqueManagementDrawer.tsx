@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { getDifficultyColorClass, getDifficultyGlowStyle } from "@/lib/difficulty-styles";
 import { getTypeColor } from "@/lib/constants";
 import {
@@ -186,6 +186,73 @@ function TechniqueRow({ exercise, onUpdateDayAssignments, focusedDay, isCompact 
 }
 
 // --- Main Drawer ---
+
+// Long-press gated Reorder.Item wrapper
+function LongPressReorderItem({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) {
+  const controls = useDragControls();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dragEnabled, setDragEnabled] = useState(false);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    clearTimer();
+    timerRef.current = setTimeout(() => {
+      setDragEnabled(true);
+      controls.start(e.nativeEvent);
+    }, 400);
+  }, [controls, clearTimer]);
+
+  const handlePointerUp = useCallback(() => {
+    clearTimer();
+    setDragEnabled(false);
+  }, [clearTimer]);
+
+  return (
+    <Reorder.Item
+      value={value}
+      dragListener={false}
+      dragControls={controls}
+      className={dragEnabled ? "cursor-grabbing" : "cursor-default"}
+      animate={dragEnabled ? {
+        scale: 1.02,
+        boxShadow: "0 0 12px rgba(58,143,143,0.3), 0 0 4px rgba(58,143,143,0.15)",
+      } : {
+        scale: 1,
+        boxShadow: "0 0 0px rgba(0,0,0,0)",
+      }}
+      whileDrag={{
+        scale: 1.04,
+        boxShadow: "0 8px 30px rgba(0,0,0,0.4), 0 0 15px rgba(58,143,143,0.3)",
+        zIndex: 50,
+      }}
+      transition={{ duration: 0.2 }}
+      onDragEnd={() => setDragEnabled(false)}
+    >
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        style={{ touchAction: dragEnabled ? "none" : "auto" }}
+        className={dragEnabled ? "ring-1 ring-jade-glow/40 rounded-lg" : ""}
+      >
+        {children}
+      </div>
+    </Reorder.Item>
+  );
+}
 
 export default function TechniqueManagementDrawer({
   isOpen,
@@ -553,15 +620,9 @@ export default function TechniqueManagementDrawer({
                       className={isCompactView ? "space-y-1.5" : "space-y-3"}
                     >
                       {sortedFilteredExercises.map((exercise) => (
-                        <Reorder.Item
+                        <LongPressReorderItem
                           key={exercise.id}
                           value={exercise.id}
-                          className="cursor-grab active:cursor-grabbing"
-                          whileDrag={{
-                            scale: 1.02,
-                            boxShadow: "0 8px 30px rgba(0,0,0,0.4), 0 0 15px rgba(58,143,143,0.15)",
-                            zIndex: 50,
-                          }}
                         >
                           <TechniqueRow
                             exercise={exercise}
@@ -569,7 +630,7 @@ export default function TechniqueManagementDrawer({
                             focusedDay={dayFilter}
                             isCompact={isCompactView}
                           />
-                        </Reorder.Item>
+                        </LongPressReorderItem>
                       ))}
                     </Reorder.Group>
                   )}
@@ -587,7 +648,7 @@ export default function TechniqueManagementDrawer({
             >
               <div className="flex items-center gap-4 text-[11px] text-mist-dark">
                 <span>
-                  <span className="text-jade-glow/60">↕</span> Drag to reorder
+                  <span className="text-jade-glow/60">↕</span> Hold &amp; drag to reorder
                 </span>
                 <span>
                   <span className="text-jade-glow/60">ⓘ</span> Click info for tips

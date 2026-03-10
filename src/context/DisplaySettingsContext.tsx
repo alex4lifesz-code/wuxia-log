@@ -64,6 +64,8 @@ export interface DisplaySettings {
   sidebarLoreVisible: boolean;
   // Recent sessions duration filter in days (0 = all, 7/14/30/90)
   recentSessionsDays: number;
+  // Column colour differentiation for W/R columns
+  columnColorsEnabled: boolean;
 }
 
 const DEFAULT_SETTINGS: DisplaySettings = {
@@ -89,6 +91,7 @@ const DEFAULT_SETTINGS: DisplaySettings = {
   activeCardLoreVisible: true,
   sidebarLoreVisible: true,
   recentSessionsDays: 0,
+  columnColorsEnabled: true,
 };
 
 const STORAGE_KEY = "cultivateos-display-settings";

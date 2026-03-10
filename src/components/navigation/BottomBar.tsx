@@ -25,7 +25,7 @@ const NAV_ICON_MAP: Record<string, ReactNode> = {
 };
 
 function BottomBar() {
-  const { getSortedNavItems, isMobile, viewportMode, isNativeApp, setMobileSidebarOpen, mobileSidebarOpen } = useAppContext();
+  const { getSortedNavItems, isMobile, viewportMode, isNativeApp, setMobileSidebarOpen, mobileSidebarOpen, activeDrawerClose } = useAppContext();
   const { logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -52,8 +52,12 @@ function BottomBar() {
   }, [router, setMobileSidebarOpen]);
 
   const handleFABPress = useCallback(() => {
+    if (activeDrawerClose) {
+      activeDrawerClose();
+      return;
+    }
     setMobileSidebarOpen(!mobileSidebarOpen);
-  }, [setMobileSidebarOpen, mobileSidebarOpen]);
+  }, [setMobileSidebarOpen, mobileSidebarOpen, activeDrawerClose]);
 
   const handleMenuToggle = useCallback(() => {
     setMenuOpen(prev => !prev);
@@ -177,42 +181,46 @@ function BottomBar() {
             );
           })}
 
-          {/* ── Centre FAB — Side Panel Toggle ── */}
+          {/* ── Centre FAB — Side Panel Toggle / Drawer Close ── */}
           <div className="relative flex flex-col items-center -mt-4 z-10">
             <motion.button
               whileTap={{ scale: 0.88 }}
               onClick={handleFABPress}
               className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-colors ${
-                mobileSidebarOpen
-                  ? "bg-jade-glow shadow-jade-glow/40"
-                  : "bg-gradient-to-br from-jade-deep to-jade-glow/80 shadow-jade-glow/20"
+                activeDrawerClose
+                  ? "bg-crimson-glow/90 shadow-crimson-glow/40"
+                  : mobileSidebarOpen
+                    ? "bg-jade-glow shadow-jade-glow/40"
+                    : "bg-gradient-to-br from-jade-deep to-jade-glow/80 shadow-jade-glow/20"
               }`}
               style={{
-                boxShadow: mobileSidebarOpen
-                  ? '0 4px 20px rgba(52,211,153,0.5), 0 0 40px rgba(52,211,153,0.15)'
-                  : '0 4px 16px rgba(52,211,153,0.3), 0 0 30px rgba(52,211,153,0.1)',
+                boxShadow: activeDrawerClose
+                  ? '0 4px 20px rgba(220,38,38,0.4), 0 0 30px rgba(220,38,38,0.15)'
+                  : mobileSidebarOpen
+                    ? '0 4px 20px rgba(52,211,153,0.5), 0 0 40px rgba(52,211,153,0.15)'
+                    : '0 4px 16px rgba(52,211,153,0.3), 0 0 30px rgba(52,211,153,0.1)',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
               <motion.svg
                 initial={false}
-                animate={{ rotate: mobileSidebarOpen ? 90 : 0 }}
+                animate={{ rotate: activeDrawerClose ? 90 : mobileSidebarOpen ? 90 : 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                className={`w-6 h-6 ${mobileSidebarOpen ? "text-ink-deep" : "text-cloud-white"}`}
+                className={`w-6 h-6 ${activeDrawerClose ? "text-cloud-white" : mobileSidebarOpen ? "text-ink-deep" : "text-cloud-white"}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 strokeWidth={2.2}
               >
-                {mobileSidebarOpen ? (
+                {activeDrawerClose || mobileSidebarOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 ) : (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h10M4 18h16" />
                 )}
               </motion.svg>
             </motion.button>
-            <span className={`text-[9px] font-semibold mt-0.5 tracking-wide ${mobileSidebarOpen ? "text-jade-glow" : "text-mist-dark"}`}>
-              Menu
+            <span className={`text-[9px] font-semibold mt-0.5 tracking-wide ${activeDrawerClose ? "text-crimson-glow" : mobileSidebarOpen ? "text-jade-glow" : "text-mist-dark"}`}>
+              {activeDrawerClose ? "Close" : "Menu"}
             </span>
           </div>
 

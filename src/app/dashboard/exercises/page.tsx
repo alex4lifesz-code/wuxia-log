@@ -19,6 +19,8 @@ import {
   getTargetGroupColor,
 } from "@/lib/constants";
 
+const FAVOURITES_KEY = "cultivateos-favourite-techniques";
+
 interface Exercise {
   id: string;
   name: string;
@@ -42,6 +44,11 @@ function ExercisesSidebar({
   total,
   isMobile,
   exercises,
+  favouriteIds,
+  onToggleFavourite,
+  filterFavourites,
+  setFilterFavourites,
+  onDismissSidebar,
 }: {
   onAdd: () => void;
   onSearch: (term: string) => void;
@@ -55,6 +62,11 @@ function ExercisesSidebar({
   total: number;
   isMobile: boolean;
   exercises: Exercise[];
+  favouriteIds: Set<string>;
+  onToggleFavourite: (id: string) => void;
+  filterFavourites: boolean;
+  setFilterFavourites: (v: boolean) => void;
+  onDismissSidebar: () => void;
 }) {
   // Get unique target groups from existing exercises
   const availableTargetGroups = Array.from(
@@ -76,8 +88,25 @@ function ExercisesSidebar({
           placeholder="Search techniques..."
           value={searchTerm}
           onChange={(e) => onSearch(e.target.value)}
+          onKeyDown={(e: React.KeyboardEvent) => {
+            if (e.key === "Enter") onDismissSidebar();
+          }}
         />
       </div>
+
+      {/* Favourites filter */}
+      {favouriteIds.size > 0 && (
+        <div className="pt-2">
+          <GlowButton
+            variant={filterFavourites ? "gold" : "ghost"}
+            size="sm"
+            className="w-full text-xs"
+            onClick={() => setFilterFavourites(!filterFavourites)}
+          >
+            ★ Favourites ({favouriteIds.size})
+          </GlowButton>
+        </div>
+      )}
 
       <div className="pt-2 space-y-2">
         {isMobile ? (
@@ -198,7 +227,7 @@ function ExercisesSidebar({
 }
 
 export default function ExercisesPage() {
-  const { isMobile } = useAppContext();
+  const { isMobile, setMobileSidebarOpen } = useAppContext();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -208,6 +237,8 @@ export default function ExercisesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState<Exercise | null>(null);
   const [hoveredExercise, setHoveredExercise] = useState<string | null>(null);
+  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
+  const [filterFavourites, setFilterFavourites] = useState(false);
 
   // New exercise form
   const [newName, setNewName] = useState("");
@@ -215,6 +246,23 @@ export default function ExercisesPage() {
   const [newType, setNewType] = useState<string>(EXERCISE_TYPES[0]);
   const [newStory, setNewStory] = useState("");
   const [newTarget, setNewTarget] = useState("");
+
+  // Load favourites from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(FAVOURITES_KEY);
+      if (saved) setFavouriteIds(new Set(JSON.parse(saved)));
+    } catch { /* ignore corrupted data */ }
+  }, []);
+
+  const toggleFavourite = useCallback((id: string) => {
+    setFavouriteIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem(FAVOURITES_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
 
   const getDifficultyBorderColor = (difficulty: string) => {
     if (difficulty === "Mortal") return "#22c55e";
@@ -250,7 +298,8 @@ export default function ExercisesPage() {
     const matchDifficulty = !filterDifficulty || e.difficulty === filterDifficulty;
     const matchType = !filterType || e.type === filterType;
     const matchTargetGroup = !filterTargetGroup || e.targetGroup === filterTargetGroup;
-    return matchSearch && matchDifficulty && matchType && matchTargetGroup;
+    const matchFavourites = !filterFavourites || favouriteIds.has(e.id);
+    return matchSearch && matchDifficulty && matchType && matchTargetGroup && matchFavourites;
   });
 
   const addExercise = async () => {
@@ -308,6 +357,11 @@ export default function ExercisesPage() {
           total={exercises.length}
           isMobile={isMobile}
           exercises={exercises}
+          favouriteIds={favouriteIds}
+          onToggleFavourite={toggleFavourite}
+          filterFavourites={filterFavourites}
+          setFilterFavourites={setFilterFavourites}
+          onDismissSidebar={() => setMobileSidebarOpen(false)}
         />
       }
     >
@@ -354,6 +408,17 @@ export default function ExercisesPage() {
         </div>
       ) : (
         <div className="space-y-2">
+          {/* Main content search bar — mobile only (desktop uses sidebar search) */}
+          {isMobile && (
+            <div className="mb-4">
+              <GlowInput
+                placeholder="Search techniques..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          )}
+
           {filteredExercises.map((exercise, i) => (
             <motion.div
               key={exercise.id}
@@ -417,7 +482,18 @@ export default function ExercisesPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="text-mist-dark/60 text-xs pt-1">→</span>
+                  <div className="flex flex-col items-center gap-2 pt-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleFavourite(exercise.id); }}
+                      className={`text-base transition-all duration-200 hover:scale-125 ${
+                        favouriteIds.has(exercise.id) ? "text-gold opacity-100" : "text-mist-dark/40 opacity-60 hover:opacity-100"
+                      }`}
+                      aria-label={favouriteIds.has(exercise.id) ? "Remove from favourites" : "Add to favourites"}
+                    >
+                      {favouriteIds.has(exercise.id) ? "★" : "☆"}
+                    </button>
+                    <span className="text-mist-dark/60 text-xs">→</span>
+                  </div>
                 </div>
               </GlowCard>
             </motion.div>

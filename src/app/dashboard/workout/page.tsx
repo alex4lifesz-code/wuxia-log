@@ -20,7 +20,7 @@ interface Exercise {
 }
 
 export default function TrainingGrounds() {
-  const { isMobile, isNativeApp } = useAppContext();
+  const { isMobile, isNativeApp, registerDrawerClose } = useAppContext();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -86,10 +86,12 @@ export default function TrainingGrounds() {
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
+    registerDrawerClose(() => setIsDrawerOpen(false));
   };
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
+    registerDrawerClose(null);
   };
 
   // Reorder handler — persists to localStorage and updates state

@@ -73,6 +73,7 @@ function SettingsSidebar({ onLogout }: { onLogout: () => void }) {
           <SettingRow label="Sidebar Glow" value={`${settings.glowIntensitySidebar ?? 100}%`} color={(settings.glowIntensitySidebar ?? 100) > 0 ? "text-jade-glow" : "text-mist-dark"} />
           <SettingRow label="Card Lore" value={(settings.activeCardLoreVisible ?? true) ? "Visible" : "Hidden"} color={(settings.activeCardLoreVisible ?? true) ? "text-jade-glow" : "text-mist-dark"} />
           <SettingRow label="Sidebar Lore" value={(settings.sidebarLoreVisible ?? true) ? "Visible" : "Hidden"} color={(settings.sidebarLoreVisible ?? true) ? "text-jade-glow" : "text-mist-dark"} />
+          <SettingRow label="Column Colours" value={(settings.columnColorsEnabled ?? true) ? "On" : "Off"} color={(settings.columnColorsEnabled ?? true) ? "text-jade-glow" : "text-mist-dark"} />
         </div>
       </div>
 
@@ -107,8 +108,6 @@ function SettingsSidebar({ onLogout }: { onLogout: () => void }) {
 export default function SettingsPage() {
   const { logout } = useAuth();
   const {
-    navItems,
-    toggleNavPin,
     themeStyle,
     setThemeStyle,
     viewportMode,
@@ -123,6 +122,19 @@ export default function SettingsPage() {
       sidebar={<SettingsSidebar onLogout={logout} />}
     >
       <div className="space-y-6 max-w-2xl">
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 0: DISPLAY PRESETS — Save, Load, Manage (TOP)
+           ══════════════════════════════════════════════════════════ */}
+        <GlowCard glow="jade" hoverable={false}>
+          <h3 className="text-sm text-jade-glow uppercase tracking-wider mb-2">
+            Display Presets
+          </h3>
+          <p className="text-xs text-mist-dark mb-4">
+            Save your current display configuration to a preset slot for quick recall. Each slot stores the complete state of all display settings.
+          </p>
+          <PresetSlots variant="full" />
+        </GlowCard>
 
         {/* ══════════════════════════════════════════════════════════
             SECTION 1: APPEARANCE — Theme & Visual Identity
@@ -395,6 +407,12 @@ export default function SettingsPage() {
                       <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-cloud-white shadow transition-transform ${(settings.sidebarLoreVisible ?? true) ? "translate-x-[14px]" : "translate-x-0"}`} />
                     </button>
                   </div>
+                  <div className="flex items-center justify-between gap-3 py-1.5">
+                    <span className="text-[11px] text-mist-light shrink-0">Column colours (W/R)</span>
+                    <button type="button" role="switch" aria-checked={settings.columnColorsEnabled ?? true} onClick={() => updateSettings({ columnColorsEnabled: !(settings.columnColorsEnabled ?? true) })} className={`relative shrink-0 w-8 h-[18px] rounded-full transition-colors ${(settings.columnColorsEnabled ?? true) ? "bg-jade-glow" : "bg-ink-light"}`}>
+                      <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-cloud-white shadow transition-transform ${(settings.columnColorsEnabled ?? true) ? "translate-x-[14px]" : "translate-x-0"}`} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -488,19 +506,6 @@ export default function SettingsPage() {
         </GlowCard>
 
         {/* ══════════════════════════════════════════════════════════
-            SECTION 2.5: DISPLAY PRESETS — Save, Load, Manage
-           ══════════════════════════════════════════════════════════ */}
-        <GlowCard glow="jade" hoverable={false}>
-          <h3 className="text-sm text-jade-glow uppercase tracking-wider mb-2">
-            Display Presets
-          </h3>
-          <p className="text-xs text-mist-dark mb-4">
-            Save your current display configuration to a preset slot for quick recall. Each slot stores the complete state of all display settings above.
-          </p>
-          <PresetSlots variant="full" />
-        </GlowCard>
-
-        {/* ══════════════════════════════════════════════════════════
             SECTION 3: PREFERENCES — Date, Viewport
            ══════════════════════════════════════════════════════════ */}
         <GlowCard glow="blue" hoverable={false}>
@@ -576,50 +581,6 @@ export default function SettingsPage() {
           </div>
         </GlowCard>
 
-        {/* ══════════════════════════════════════════════════════════
-            SECTION 4: NAVIGATION
-           ══════════════════════════════════════════════════════════ */}
-        <GlowCard glow="blue" hoverable={false}>
-          <h3 className="text-sm text-mountain-blue-glow uppercase tracking-wider mb-4">
-            Navigation Items
-          </h3>
-          <p className="text-xs text-mist-dark mb-3">
-            Toggle visibility and pin frequently used sections
-          </p>
-          <div className="space-y-2">
-            {navItems.map((item) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ x: 2 }}
-                className="flex items-center justify-between p-2 rounded-lg bg-ink-dark border border-ink-light"
-              >
-                <div className="flex items-center gap-2">
-                  <span>{item.icon}</span>
-                  <span
-                    className={`text-sm ${
-                      item.visible ? "text-cloud-white" : "text-mist-dark line-through"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleNavPin(item.id)}
-                    className={`text-xs px-2 py-1 rounded transition-colors ${
-                      item.pinned
-                        ? "text-gold bg-gold-dim/20"
-                        : "text-mist-dark hover:text-mist-light"
-                    }`}
-                  >
-                    📌
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </GlowCard>
       </div>
     </PageLayout>
   );

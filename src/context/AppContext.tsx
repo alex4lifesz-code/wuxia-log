@@ -45,6 +45,8 @@ interface AppContextType extends AppState {
   setTrainingMode: (mode: TrainingMode) => void;
   mobileSidebarOpen: boolean;
   setMobileSidebarOpen: (open: boolean) => void;
+  registerDrawerClose: (closeFn: (() => void) | null) => void;
+  activeDrawerClose: (() => void) | null;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -64,6 +66,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [topPanelExpanded, setTopPanelExpandedState] = useState(true);
   const [trainingMode, setTrainingModeState] = useState<TrainingMode>("simplified");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [activeDrawerClose, setActiveDrawerClose] = useState<(() => void) | null>(null);
+
+  const registerDrawerClose = useCallback((closeFn: (() => void) | null) => {
+    setActiveDrawerClose(() => closeFn);
+  }, []);
 
   // Detect native vs browser platform on mount
   useEffect(() => {
@@ -307,6 +314,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTrainingMode,
         mobileSidebarOpen,
         setMobileSidebarOpen,
+        registerDrawerClose,
+        activeDrawerClose,
       }}
     >
       {children}

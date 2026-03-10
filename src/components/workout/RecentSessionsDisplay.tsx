@@ -49,15 +49,15 @@ interface WorkoutSession {
 
 // Column metadata for sequential set-based structure
 const COLUMN_CONFIG = [
-  { key: "date", label: "Date", type: "display", width: "" },
-  { key: "exercise", label: "Exercise", type: "display", width: "" },
-  { key: "weight1", label: "W1", type: "numeric", width: "", editable: true },
-  { key: "reps1", label: "R1", type: "numeric", width: "", editable: true },
-  { key: "weight2", label: "W2", type: "numeric", width: "", editable: true },
-  { key: "reps2", label: "R2", type: "numeric", width: "", editable: true },
-  { key: "weight3", label: "W3", type: "numeric", width: "", editable: true },
-  { key: "reps3", label: "R3", type: "numeric", width: "", editable: true },
-  { key: "notes", label: "Notes", type: "text", width: "", editable: true },
+  { key: "date", label: "Date", type: "display", width: "", colType: "" },
+  { key: "exercise", label: "Exercise", type: "display", width: "", colType: "" },
+  { key: "weight1", label: "W1", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "reps1", label: "R1", type: "numeric", width: "", editable: true, colType: "reps" },
+  { key: "weight2", label: "W2", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "reps2", label: "R2", type: "numeric", width: "", editable: true, colType: "reps" },
+  { key: "weight3", label: "W3", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "reps3", label: "R3", type: "numeric", width: "", editable: true, colType: "reps" },
+  { key: "notes", label: "Notes", type: "text", width: "", editable: true, colType: "" },
 ];
 
 interface RecentSessionsDisplayProps {
@@ -189,6 +189,22 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
 
   const displayNumericalValue = (value: number | null): string => {
     return value !== null && value !== undefined ? String(value) : "—";
+  };
+
+  const getZeroValueStyle = (value: number | null, colType: string): React.CSSProperties | undefined => {
+    if (value === 0) {
+      return {
+        backgroundColor: 'var(--ink-mid)',
+        color: 'var(--mist-dark)',
+      };
+    }
+    if (settings.columnColorsEnabled && colType === 'weight') {
+      return { backgroundColor: 'var(--col-weight-bg)' };
+    }
+    if (settings.columnColorsEnabled && colType === 'reps') {
+      return { backgroundColor: 'var(--col-reps-bg)' };
+    }
+    return undefined;
   };
 
   const handleEditModeToggle = () => {
@@ -533,19 +549,26 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
             {/* Sequential Set-Based Table Structure */}
-            <table className="w-full text-xs border-collapse table-auto" style={{ whiteSpace: 'nowrap' }}>
+            <table className="text-xs border-collapse" style={{ whiteSpace: 'nowrap', minWidth: isEditMode ? '720px' : '600px' }}>
               {/* Distinctive Header Row */}
               <thead>
                 <tr className="border-b-2 border-jade-glow/50 bg-ink-mid/40 text-mist-light">
                   {COLUMN_CONFIG.map((col) => (
                     <th
                       key={col.key}
-                      className={`py-2 font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle
+                      className={`py-2 font-semibold uppercase tracking-wider text-[11px] align-middle
                         ${col.type === 'numeric' ? 'text-center px-1' : 'text-left px-1.5'}
                         ${col.key === 'date' ? 'pr-1' : ''}
                         ${col.key === 'notes' ? 'w-[1%]' : ''}`}
+                      style={
+                        settings.columnColorsEnabled && col.colType === 'weight'
+                          ? { color: 'var(--col-weight)' }
+                          : settings.columnColorsEnabled && col.colType === 'reps'
+                            ? { color: 'var(--col-reps)' }
+                            : undefined
+                      }
                     >
                       {col.label}
                     </th>
@@ -632,13 +655,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.weight1, 'weight')}
+                            >
                               {displayNumericalValue(exercise.weight1)}
                             </td>
                           )}
@@ -659,13 +684,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.reps1, 'reps')}
+                            >
                               {displayNumericalValue(exercise.reps1)}
                             </td>
                           )}
@@ -686,13 +713,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.weight2, 'weight')}
+                            >
                               {displayNumericalValue(exercise.weight2)}
                             </td>
                           )}
@@ -713,13 +742,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.reps2, 'reps')}
+                            >
                               {displayNumericalValue(exercise.reps2)}
                             </td>
                           )}
@@ -740,13 +771,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.weight3, 'weight')}
+                            >
                               {displayNumericalValue(exercise.weight3)}
                             </td>
                           )}
@@ -767,13 +800,15 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="—"
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
                                            text-center text-xs outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
                             </td>
                           ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle">
+                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                              style={getZeroValueStyle(exercise.reps3, 'reps')}
+                            >
                               {displayNumericalValue(exercise.reps3)}
                             </td>
                           )}
@@ -792,7 +827,7 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                   )
                                 }
                                 placeholder="Add notes..."
-                                className="w-full bg-ink-deep border border-jade-glow/30 rounded px-2 py-1 text-cloud-white text-xs
+                                className="w-full min-w-[100px] bg-ink-deep border border-jade-glow/30 rounded px-2 py-1 text-cloud-white text-xs
                                            placeholder:text-mist-dark outline-none transition-all duration-200
                                            focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
                               />
