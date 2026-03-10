@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { getPersistedUser, persistUser, clearPersistedUser } from "@/lib/storage";
 
 type User = {
   id: string;
@@ -24,36 +25,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from localStorage or sessionStorage on mount
+  // Hydrate auth state from persistent storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("cultivation-user") || sessionStorage.getItem("cultivation-user");
-    if (saved) {
+    let cancelled = false;
+
+    async function hydrate() {
       try {
-        const parsedUser = JSON.parse(saved);
-        setUser(parsedUser);
+        const saved = await getPersistedUser();
+        if (saved && !cancelled) {
+          const parsedUser = JSON.parse(saved);
+          setUser(parsedUser);
+        }
       } catch {
-        localStorage.removeItem("cultivation-user");
-        sessionStorage.removeItem("cultivation-user");
+        // Corrupted data — clear everything
+        await clearPersistedUser();
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     }
-    setIsLoading(false);
+
+    hydrate();
+    return () => { cancelled = true; };
   }, []);
 
   const login = useCallback((userData: User, rememberMe = false) => {
     setUser(userData);
-    if (rememberMe) {
-      localStorage.setItem("cultivation-user", JSON.stringify(userData));
-      sessionStorage.removeItem("cultivation-user");
-    } else {
-      sessionStorage.setItem("cultivation-user", JSON.stringify(userData));
-      localStorage.removeItem("cultivation-user");
-    }
+    persistUser(JSON.stringify(userData), rememberMe);
   }, []);
 
   const logout = useCallback(async () => {
     setUser(null);
-    localStorage.removeItem("cultivation-user");
-    sessionStorage.removeItem("cultivation-user");
+    await clearPersistedUser();
     localStorage.removeItem("cultivation-nav-state");
     localStorage.removeItem("cultivation-theme");
     router.push("/");
