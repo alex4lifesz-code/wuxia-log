@@ -328,6 +328,28 @@ body {
   --gold: #8a7030;
   --gold-glow: #705a20;
 
+  /* Difficulty colors — deeper tones for light backgrounds */
+  --difficulty-green: #15803d;
+  --difficulty-green-glow: #166534;
+  --difficulty-amber: #b45309;
+  --difficulty-amber-glow: #92400e;
+  --difficulty-red: #dc2626;
+  --difficulty-red-glow: #b91c1c;
+  --difficulty-violet: #6d28d9;
+  --difficulty-violet-glow: #5b21b6;
+  --difficulty-pink: #be185d;
+  --difficulty-pink-glow: #9d174d;
+  --difficulty-light-pink: #c026d3;
+  --difficulty-light-pink-glow: #a21caf;
+
+  /* Difficulty glows — darker shadows for light backgrounds */
+  --glow-difficulty-green: 0 0 12px rgba(21, 128, 61, 0.35), 0 0 24px rgba(21, 128, 61, 0.15);
+  --glow-difficulty-amber: 0 0 12px rgba(180, 83, 9, 0.35), 0 0 24px rgba(180, 83, 9, 0.15);
+  --glow-difficulty-red: 0 0 12px rgba(220, 38, 38, 0.35), 0 0 24px rgba(220, 38, 38, 0.15);
+  --glow-difficulty-violet: 0 0 12px rgba(109, 40, 217, 0.35), 0 0 24px rgba(109, 40, 217, 0.15);
+  --glow-difficulty-pink: 0 0 12px rgba(190, 24, 93, 0.35), 0 0 24px rgba(190, 24, 93, 0.15);
+  --glow-difficulty-light-pink: 0 0 12px rgba(192, 38, 211, 0.35), 0 0 24px rgba(192, 38, 211, 0.15);
+
   --background: var(--void-black);
   --foreground: var(--cloud-white);
   --surface: var(--ink-deep);
@@ -388,6 +410,28 @@ body {
   --gold: #908060;
   --gold-glow: #b0a070;
 
+  /* Difficulty colors — muted, desaturated tones for monochrome harmony */
+  --difficulty-green: #6aaa6a;
+  --difficulty-green-glow: #508050;
+  --difficulty-amber: #c8a848;
+  --difficulty-amber-glow: #a08838;
+  --difficulty-red: #c86060;
+  --difficulty-red-glow: #a04848;
+  --difficulty-violet: #9080b0;
+  --difficulty-violet-glow: #706090;
+  --difficulty-pink: #b07090;
+  --difficulty-pink-glow: #905878;
+  --difficulty-light-pink: #c090a0;
+  --difficulty-light-pink-glow: #a07888;
+
+  /* Difficulty glows — softer for calligraphy theme */
+  --glow-difficulty-green: 0 0 12px rgba(106, 170, 106, 0.25), 0 0 24px rgba(106, 170, 106, 0.08);
+  --glow-difficulty-amber: 0 0 12px rgba(200, 168, 72, 0.25), 0 0 24px rgba(200, 168, 72, 0.08);
+  --glow-difficulty-red: 0 0 12px rgba(200, 96, 96, 0.25), 0 0 24px rgba(200, 96, 96, 0.08);
+  --glow-difficulty-violet: 0 0 12px rgba(144, 128, 176, 0.25), 0 0 24px rgba(144, 128, 176, 0.08);
+  --glow-difficulty-pink: 0 0 12px rgba(176, 112, 144, 0.25), 0 0 24px rgba(176, 112, 144, 0.08);
+  --glow-difficulty-light-pink: 0 0 12px rgba(192, 144, 160, 0.25), 0 0 24px rgba(192, 144, 160, 0.08);
+
   --background: var(--void-black);
   --foreground: var(--cloud-white);
   --surface: var(--ink-deep);
@@ -443,6 +487,28 @@ body {
   --gold-dim: #c0a060;
   --gold: #d8b870;
   --gold-glow: #f0d080;
+
+  /* Difficulty colors — warm-tinted to harmonise with sakura palette */
+  --difficulty-green: #34d399;
+  --difficulty-green-glow: #10b981;
+  --difficulty-amber: #fbbf24;
+  --difficulty-amber-glow: #f59e0b;
+  --difficulty-red: #f87171;
+  --difficulty-red-glow: #ef4444;
+  --difficulty-violet: #c4b5fd;
+  --difficulty-violet-glow: #a78bfa;
+  --difficulty-pink: #f9a8d4;
+  --difficulty-pink-glow: #f472b6;
+  --difficulty-light-pink: #fda4af;
+  --difficulty-light-pink-glow: #fb7185;
+
+  /* Difficulty glows — warm sakura-tinted glows */
+  --glow-difficulty-green: 0 0 15px rgba(52, 211, 153, 0.35), 0 0 30px rgba(52, 211, 153, 0.12);
+  --glow-difficulty-amber: 0 0 15px rgba(251, 191, 36, 0.35), 0 0 30px rgba(251, 191, 36, 0.12);
+  --glow-difficulty-red: 0 0 15px rgba(248, 113, 113, 0.35), 0 0 30px rgba(248, 113, 113, 0.12);
+  --glow-difficulty-violet: 0 0 15px rgba(196, 181, 253, 0.35), 0 0 30px rgba(196, 181, 253, 0.12);
+  --glow-difficulty-pink: 0 0 15px rgba(249, 168, 212, 0.35), 0 0 30px rgba(249, 168, 212, 0.12);
+  --glow-difficulty-light-pink: 0 0 15px rgba(253, 164, 175, 0.35), 0 0 30px rgba(253, 164, 175, 0.12);
 
   --background: var(--void-black);
   --foreground: var(--cloud-white);
@@ -524,6 +590,28 @@ body {
   --col-weight-bg: rgba(154, 136, 160, 0.06);
   --col-reps: #d4508a;
   --col-reps-bg: rgba(212, 80, 138, 0.08);
+
+  /* Difficulty colors — deep magenta-tinted to complement sakura-dark palette */
+  --difficulty-green: #2dd4a0;
+  --difficulty-green-glow: #0fa87e;
+  --difficulty-amber: #f5b020;
+  --difficulty-amber-glow: #d99a10;
+  --difficulty-red: #f06060;
+  --difficulty-red-glow: #d94040;
+  --difficulty-violet: #b8a0e8;
+  --difficulty-violet-glow: #9878d0;
+  --difficulty-pink: #e890c0;
+  --difficulty-pink-glow: #d470a8;
+  --difficulty-light-pink: #f0a0b0;
+  --difficulty-light-pink-glow: #e07898;
+
+  /* Difficulty glows — deep magenta-tinted */
+  --glow-difficulty-green: 0 0 15px rgba(45, 212, 160, 0.3), 0 0 30px rgba(45, 212, 160, 0.1);
+  --glow-difficulty-amber: 0 0 15px rgba(245, 176, 32, 0.3), 0 0 30px rgba(245, 176, 32, 0.1);
+  --glow-difficulty-red: 0 0 15px rgba(240, 96, 96, 0.3), 0 0 30px rgba(240, 96, 96, 0.1);
+  --glow-difficulty-violet: 0 0 15px rgba(184, 160, 232, 0.3), 0 0 30px rgba(184, 160, 232, 0.1);
+  --glow-difficulty-pink: 0 0 15px rgba(232, 144, 192, 0.3), 0 0 30px rgba(232, 144, 192, 0.1);
+  --glow-difficulty-light-pink: 0 0 15px rgba(240, 160, 176, 0.3), 0 0 30px rgba(240, 160, 176, 0.1);
 }
 
 /* ===== Custom Scrollbar — Sidebar & General ===== */
@@ -622,6 +710,28 @@ html.mountain-mist {
   --col-weight-bg: rgba(45, 122, 122, 0.08);
   --col-reps: #887840;
   --col-reps-bg: rgba(136, 120, 64, 0.08);
+
+  /* Difficulty colors — deeper tones for light-background contrast */
+  --difficulty-green: #15803d;
+  --difficulty-green-glow: #166534;
+  --difficulty-amber: #b45309;
+  --difficulty-amber-glow: #92400e;
+  --difficulty-red: #dc2626;
+  --difficulty-red-glow: #b91c1c;
+  --difficulty-violet: #6d28d9;
+  --difficulty-violet-glow: #5b21b6;
+  --difficulty-pink: #be185d;
+  --difficulty-pink-glow: #9d174d;
+  --difficulty-light-pink: #c026d3;
+  --difficulty-light-pink-glow: #a21caf;
+
+  /* Difficulty glows — darker shadow values for light backgrounds */
+  --glow-difficulty-green: 0 0 12px rgba(21, 128, 61, 0.25), 0 0 24px rgba(21, 128, 61, 0.1);
+  --glow-difficulty-amber: 0 0 12px rgba(180, 83, 9, 0.25), 0 0 24px rgba(180, 83, 9, 0.1);
+  --glow-difficulty-red: 0 0 12px rgba(220, 38, 38, 0.25), 0 0 24px rgba(220, 38, 38, 0.1);
+  --glow-difficulty-violet: 0 0 12px rgba(109, 40, 217, 0.25), 0 0 24px rgba(109, 40, 217, 0.1);
+  --glow-difficulty-pink: 0 0 12px rgba(190, 24, 93, 0.25), 0 0 24px rgba(190, 24, 93, 0.1);
+  --glow-difficulty-light-pink: 0 0 12px rgba(192, 38, 211, 0.25), 0 0 24px rgba(192, 38, 211, 0.1);
 }
 
 html.mountain-mist .cultivation-gradient {
@@ -703,6 +813,28 @@ html.calligraphy {
   --col-weight-bg: rgba(136, 136, 136, 0.06);
   --col-reps: #d4a860;
   --col-reps-bg: rgba(212, 168, 96, 0.08);
+
+  /* Difficulty colors — muted, desaturated for monochrome theme */
+  --difficulty-green: #6aaa6a;
+  --difficulty-green-glow: #508850;
+  --difficulty-amber: #c8a848;
+  --difficulty-amber-glow: #a88830;
+  --difficulty-red: #c86060;
+  --difficulty-red-glow: #a84848;
+  --difficulty-violet: #9080b0;
+  --difficulty-violet-glow: #706898;
+  --difficulty-pink: #b07090;
+  --difficulty-pink-glow: #905878;
+  --difficulty-light-pink: #c090a0;
+  --difficulty-light-pink-glow: #a07888;
+
+  /* Difficulty glows — softer for calligraphy theme */
+  --glow-difficulty-green: 0 0 12px rgba(106, 170, 106, 0.2), 0 0 24px rgba(106, 170, 106, 0.08);
+  --glow-difficulty-amber: 0 0 12px rgba(200, 168, 72, 0.2), 0 0 24px rgba(200, 168, 72, 0.08);
+  --glow-difficulty-red: 0 0 12px rgba(200, 96, 96, 0.2), 0 0 24px rgba(200, 96, 96, 0.08);
+  --glow-difficulty-violet: 0 0 12px rgba(144, 128, 176, 0.2), 0 0 24px rgba(144, 128, 176, 0.08);
+  --glow-difficulty-pink: 0 0 12px rgba(176, 112, 144, 0.2), 0 0 24px rgba(176, 112, 144, 0.08);
+  --glow-difficulty-light-pink: 0 0 12px rgba(192, 144, 160, 0.2), 0 0 24px rgba(192, 144, 160, 0.08);
 }
 
 html.calligraphy .cultivation-gradient {
@@ -781,6 +913,28 @@ html.sakura {
   --col-weight-bg: rgba(122, 150, 179, 0.08);
   --col-reps: #e8507a;
   --col-reps-bg: rgba(232, 80, 122, 0.08);
+
+  /* Difficulty colors — warm pink-tinted for sakura light theme */
+  --difficulty-green: #15803d;
+  --difficulty-green-glow: #166534;
+  --difficulty-amber: #b45309;
+  --difficulty-amber-glow: #92400e;
+  --difficulty-red: #dc2626;
+  --difficulty-red-glow: #b91c1c;
+  --difficulty-violet: #7c3aed;
+  --difficulty-violet-glow: #6d28d9;
+  --difficulty-pink: #db2777;
+  --difficulty-pink-glow: #be185d;
+  --difficulty-light-pink: #c026d3;
+  --difficulty-light-pink-glow: #a21caf;
+
+  /* Difficulty glows — warm for sakura light */
+  --glow-difficulty-green: 0 0 12px rgba(21, 128, 61, 0.25), 0 0 24px rgba(21, 128, 61, 0.1);
+  --glow-difficulty-amber: 0 0 12px rgba(180, 83, 9, 0.25), 0 0 24px rgba(180, 83, 9, 0.1);
+  --glow-difficulty-red: 0 0 12px rgba(220, 38, 38, 0.25), 0 0 24px rgba(220, 38, 38, 0.1);
+  --glow-difficulty-violet: 0 0 12px rgba(124, 58, 237, 0.25), 0 0 24px rgba(124, 58, 237, 0.1);
+  --glow-difficulty-pink: 0 0 12px rgba(219, 39, 119, 0.25), 0 0 24px rgba(219, 39, 119, 0.1);
+  --glow-difficulty-light-pink: 0 0 12px rgba(192, 38, 211, 0.25), 0 0 24px rgba(192, 38, 211, 0.1);
 }
 
 html.sakura .cultivation-gradient {
@@ -862,6 +1016,28 @@ html.sakura-dark {
   --col-weight-bg: rgba(154, 136, 160, 0.06);
   --col-reps: #d4508a;
   --col-reps-bg: rgba(212, 80, 138, 0.08);
+
+  /* Difficulty colors — magenta-tinted for sakura-dark theme */
+  --difficulty-green: #2dd4a0;
+  --difficulty-green-glow: #0fa87e;
+  --difficulty-amber: #f5b020;
+  --difficulty-amber-glow: #d99a10;
+  --difficulty-red: #f06060;
+  --difficulty-red-glow: #d94040;
+  --difficulty-violet: #b8a0e8;
+  --difficulty-violet-glow: #9878d0;
+  --difficulty-pink: #e890c0;
+  --difficulty-pink-glow: #d470a8;
+  --difficulty-light-pink: #f0a0b0;
+  --difficulty-light-pink-glow: #e07898;
+
+  /* Difficulty glows — deep magenta-tinted */
+  --glow-difficulty-green: 0 0 15px rgba(45, 212, 160, 0.3), 0 0 30px rgba(45, 212, 160, 0.1);
+  --glow-difficulty-amber: 0 0 15px rgba(245, 176, 32, 0.3), 0 0 30px rgba(245, 176, 32, 0.1);
+  --glow-difficulty-red: 0 0 15px rgba(240, 96, 96, 0.3), 0 0 30px rgba(240, 96, 96, 0.1);
+  --glow-difficulty-violet: 0 0 15px rgba(184, 160, 232, 0.3), 0 0 30px rgba(184, 160, 232, 0.1);
+  --glow-difficulty-pink: 0 0 15px rgba(232, 144, 192, 0.3), 0 0 30px rgba(232, 144, 192, 0.1);
+  --glow-difficulty-light-pink: 0 0 15px rgba(240, 160, 176, 0.3), 0 0 30px rgba(240, 160, 176, 0.1);
 }
 
 html.sakura-dark .cultivation-gradient {

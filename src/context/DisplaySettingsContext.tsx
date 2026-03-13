@@ -68,6 +68,8 @@ export interface DisplaySettings {
   columnColorsEnabled: boolean;
   // Hide all gamification/experience content (XP, realms, progression)
   gamificationVisible: boolean;
+  // Column order: false = W1,R1,W2,R2,W3,R3 (default), true = W1,W2,W3,R1,R2,R3 (grouped)
+  columnOrderGrouped: boolean;
 }
 
 const DEFAULT_SETTINGS: DisplaySettings = {
@@ -95,6 +97,7 @@ const DEFAULT_SETTINGS: DisplaySettings = {
   recentSessionsDays: 0,
   columnColorsEnabled: true,
   gamificationVisible: true,
+  columnOrderGrouped: false,
 };
 
 const STORAGE_KEY = "cultivateos-display-settings";

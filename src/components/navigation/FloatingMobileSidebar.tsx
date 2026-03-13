@@ -2,11 +2,15 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useRouter, usePathname } from "next/navigation";
 import { memo, useCallback, useEffect } from "react";
+import { t } from "@/lib/terminology";
 
 function FloatingMobileSidebar() {
   const { getSortedNavItems, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
+  const { settings } = useDisplaySettings();
+  const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems();
@@ -94,7 +98,7 @@ function FloatingMobileSidebar() {
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     <span className="text-lg flex-shrink-0 w-7 text-center">{item.icon}</span>
-                    <span className="flex-1 text-left font-medium">{item.label}</span>
+                    <span className="flex-1 text-left font-medium">{t(item.label, terminologyMode)}</span>
                     {item.pinned && <span className="text-[10px] text-gold-dim flex-shrink-0">📌</span>}
                     {isActive && (
                       <div className="w-1.5 h-1.5 bg-jade-glow rounded-full flex-shrink-0" />

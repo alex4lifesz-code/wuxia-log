@@ -441,20 +441,20 @@ export default function ActiveTrainingCard({
                     ) : (
                       <div className="max-h-[200px] overflow-y-auto overflow-x-auto sidebar-scroll">
                         <table className="w-full text-[10px] min-w-[400px]">
-                          <thead className="sticky top-0 bg-ink-dark"><tr className="border-b border-ink-light/40 text-mist-dark"><th className="text-left py-1 px-1 font-semibold">Date</th><th className="text-center py-1 px-0.5 font-semibold">W1</th><th className="text-center py-1 px-0.5 font-semibold">R1</th><th className="text-center py-1 px-0.5 font-semibold">W2</th><th className="text-center py-1 px-0.5 font-semibold">R2</th><th className="text-center py-1 px-0.5 font-semibold">W3</th><th className="text-center py-1 px-0.5 font-semibold">R3</th><th className="text-left py-1 px-1 font-semibold">Notes</th></tr></thead>
+                          <thead className="sticky top-0 bg-ink-dark"><tr className="border-b border-ink-light/40 text-mist-dark"><th className="text-left py-1 px-1 font-semibold">Date</th>{(settings.columnOrderGrouped ? ["W1","W2","W3","R1","R2","R3"] : ["W1","R1","W2","R2","W3","R3"]).map(h => <th key={h} className="text-center py-1 px-0.5 font-semibold">{h}</th>)}<th className="text-left py-1 px-1 font-semibold">Notes</th></tr></thead>
                           <tbody>
-                            {historyData.map((entry: any) => (
+                            {historyData.map((entry: any) => {
+                              const fields = settings.columnOrderGrouped
+                                ? [entry.weight1, entry.weight2, entry.weight3, entry.reps1, entry.reps2, entry.reps3]
+                                : [entry.weight1, entry.reps1, entry.weight2, entry.reps2, entry.weight3, entry.reps3];
+                              return (
                               <tr key={entry.id} className="border-b border-ink-light/20 hover:bg-ink-mid/10">
                                 <td className="py-1 px-1 text-mist-light whitespace-nowrap">{formatDateWithPreference(new Date(entry.date), settings.dateFormat || "dd-mmm-yyyy")}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.weight1 != null ? entry.weight1 : "—"}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.reps1 != null ? entry.reps1 : "—"}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.weight2 != null ? entry.weight2 : "—"}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.reps2 != null ? entry.reps2 : "—"}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.weight3 != null ? entry.weight3 : "—"}</td>
-                                <td className="py-1 px-0.5 text-center text-cloud-white">{entry.reps3 != null ? entry.reps3 : "—"}</td>
+                                {fields.map((v, i) => <td key={i} className="py-1 px-0.5 text-center text-cloud-white">{v != null ? v : "—"}</td>)}
                                 <td className="py-1 px-1 text-mist-dark truncate max-w-[80px]" title={entry.notes || ""}>{entry.notes || "—"}</td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

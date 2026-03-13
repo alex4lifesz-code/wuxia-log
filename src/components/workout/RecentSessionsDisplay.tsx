@@ -48,7 +48,7 @@ interface WorkoutSession {
 }
 
 // Column metadata for sequential set-based structure
-const COLUMN_CONFIG = [
+const COLUMN_CONFIG_DEFAULT = [
   { key: "date", label: "Date", type: "display", width: "", colType: "" },
   { key: "exercise", label: "Exercise", type: "display", width: "", colType: "" },
   { key: "weight1", label: "W1", type: "numeric", width: "", editable: true, colType: "weight" },
@@ -56,6 +56,19 @@ const COLUMN_CONFIG = [
   { key: "weight2", label: "W2", type: "numeric", width: "", editable: true, colType: "weight" },
   { key: "reps2", label: "R2", type: "numeric", width: "", editable: true, colType: "reps" },
   { key: "weight3", label: "W3", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "reps3", label: "R3", type: "numeric", width: "", editable: true, colType: "reps" },
+  { key: "notes", label: "Notes", type: "text", width: "", editable: true, colType: "" },
+];
+
+// Grouped column order: W1,W2,W3,R1,R2,R3
+const COLUMN_CONFIG_GROUPED = [
+  { key: "date", label: "Date", type: "display", width: "", colType: "" },
+  { key: "exercise", label: "Exercise", type: "display", width: "", colType: "" },
+  { key: "weight1", label: "W1", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "weight2", label: "W2", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "weight3", label: "W3", type: "numeric", width: "", editable: true, colType: "weight" },
+  { key: "reps1", label: "R1", type: "numeric", width: "", editable: true, colType: "reps" },
+  { key: "reps2", label: "R2", type: "numeric", width: "", editable: true, colType: "reps" },
   { key: "reps3", label: "R3", type: "numeric", width: "", editable: true, colType: "reps" },
   { key: "notes", label: "Notes", type: "text", width: "", editable: true, colType: "" },
 ];
@@ -555,7 +568,7 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
               {/* Distinctive Header Row */}
               <thead>
                 <tr className="border-b-2 border-jade-glow/50 bg-ink-mid/40 text-mist-light">
-                  {COLUMN_CONFIG.map((col) => (
+                  {(settings.columnOrderGrouped ? COLUMN_CONFIG_GROUPED : COLUMN_CONFIG_DEFAULT).map((col) => (
                     <th
                       key={col.key}
                       className={`py-2 font-semibold uppercase tracking-wider text-[11px] align-middle
@@ -639,179 +652,58 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                             )}
                           </td>
 
-                          {/* SET 1: WEIGHT 1 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                value={editData.weight1 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "weight1",
-                                    e.target.value ? parseFloat(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.weight1, 'weight')}
-                            >
-                              {displayNumericalValue(exercise.weight1)}
-                            </td>
-                          )}
-
-                          {/* SET 1: REPS 1 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="1"
-                                max="500"
-                                value={editData.reps1 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "reps1",
-                                    e.target.value ? parseInt(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.reps1, 'reps')}
-                            >
-                              {displayNumericalValue(exercise.reps1)}
-                            </td>
-                          )}
-
-                          {/* SET 2: WEIGHT 2 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                value={editData.weight2 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "weight2",
-                                    e.target.value ? parseFloat(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.weight2, 'weight')}
-                            >
-                              {displayNumericalValue(exercise.weight2)}
-                            </td>
-                          )}
-
-                          {/* SET 2: REPS 2 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="1"
-                                max="500"
-                                value={editData.reps2 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "reps2",
-                                    e.target.value ? parseInt(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.reps2, 'reps')}
-                            >
-                              {displayNumericalValue(exercise.reps2)}
-                            </td>
-                          )}
-
-                          {/* SET 3: WEIGHT 3 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                value={editData.weight3 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "weight3",
-                                    e.target.value ? parseFloat(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.weight3, 'weight')}
-                            >
-                              {displayNumericalValue(exercise.weight3)}
-                            </td>
-                          )}
-
-                          {/* SET 3: REPS 3 COLUMN */}
-                          {isEditMode && editData ? (
-                            <td className="px-1 py-1.5 text-center align-middle">
-                              <input
-                                type="number"
-                                min="1"
-                                max="500"
-                                value={editData.reps3 ?? ""}
-                                onChange={(e) =>
-                                  handleEditChange(
-                                    exercise.id,
-                                    "reps3",
-                                    e.target.value ? parseInt(e.target.value) : null
-                                  )
-                                }
-                                placeholder="—"
-                                className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
-                                           text-center text-xs outline-none transition-all duration-200
-                                           focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
-                              />
-                            </td>
-                          ) : (
-                            <td className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
-                              style={getZeroValueStyle(exercise.reps3, 'reps')}
-                            >
-                              {displayNumericalValue(exercise.reps3)}
-                            </td>
-                          )}
+                          {/* DATA COLUMNS — order driven by column order setting */}
+                          {(() => {
+                            const dataFields = settings.columnOrderGrouped
+                              ? ["weight1", "weight2", "weight3", "reps1", "reps2", "reps3"] as const
+                              : ["weight1", "reps1", "weight2", "reps2", "weight3", "reps3"] as const;
+                            const fieldMeta: Record<string, { type: "weight" | "reps"; min: string; max?: string; step?: string }> = {
+                              weight1: { type: "weight", min: "0", step: "0.5" },
+                              weight2: { type: "weight", min: "0", step: "0.5" },
+                              weight3: { type: "weight", min: "0", step: "0.5" },
+                              reps1: { type: "reps", min: "1", max: "500" },
+                              reps2: { type: "reps", min: "1", max: "500" },
+                              reps3: { type: "reps", min: "1", max: "500" },
+                            };
+                            return dataFields.map((field) => {
+                              const meta = fieldMeta[field];
+                              const value = exercise[field as keyof typeof exercise] as number | null;
+                              const editValue = editData?.[field as keyof typeof editData];
+                              if (isEditMode && editData) {
+                                return (
+                                  <td key={field} className="px-1 py-1.5 text-center align-middle">
+                                    <input
+                                      type="number"
+                                      min={meta.min}
+                                      max={meta.max}
+                                      step={meta.step}
+                                      value={editValue ?? ""}
+                                      onChange={(e) =>
+                                        handleEditChange(
+                                          exercise.id,
+                                          field,
+                                          e.target.value
+                                            ? meta.type === "weight" ? parseFloat(e.target.value) : parseInt(e.target.value)
+                                            : null
+                                        )
+                                      }
+                                      placeholder="—"
+                                      className="w-full min-w-[52px] bg-ink-deep border border-jade-glow/30 rounded px-1 py-1 text-cloud-white
+                                                 text-center text-xs outline-none transition-all duration-200
+                                                 focus:border-jade-glow focus:shadow-[0_0_8px_rgba(58,143,143,0.4)]"
+                                    />
+                                  </td>
+                                );
+                              }
+                              return (
+                                <td key={field} className="px-1 py-1.5 text-center text-cloud-white text-xs align-middle"
+                                  style={getZeroValueStyle(value, meta.type)}
+                                >
+                                  {displayNumericalValue(value)}
+                                </td>
+                              );
+                            });
+                          })()}
 
                           {/* NOTES COLUMN - Terminal Position */}
                           {isEditMode && editData ? (

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
+import { t } from "@/lib/terminology";
 import PresetSlots from "@/components/ui/PresetSlots";
 import { memo } from "react";
 
@@ -11,6 +12,7 @@ function RightPanel() {
   const { settings, updateSettings } = useDisplaySettings();
   const visible = settings.rightPanelVisible;
   const gamificationVisible = settings.gamificationVisible ?? true;
+  const terminologyMode = settings.terminologyMode ?? "fantasy";
 
   // Hide entire panel when gamification is disabled
   if (!gamificationVisible) return null;
@@ -60,7 +62,7 @@ function RightPanel() {
               <div className="px-4 space-y-4 overflow-y-auto scrollbar-hide" style={{ maxHeight: "calc(100vh - 5rem)" }}>
                 {/* Today's Cultivation */}
                 <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-jade-glow mb-2">Today&apos;s Cultivation</h3>
+                  <h3 className="text-xs text-jade-glow mb-2">{t("Today's Cultivation", terminologyMode)}</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-mist-light">Sessions</span>
@@ -79,7 +81,7 @@ function RightPanel() {
 
                 {/* Cultivation Level */}
                 <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-gold mb-2">Cultivation Realm</h3>
+                  <h3 className="text-xs text-gold mb-2">{t("Cultivation Realm", terminologyMode)}</h3>
                   <div className="text-center py-2">
                     <span className="text-lg text-gold-glow animate-glow-pulse">Mortal</span>
                     <div className="mt-2 w-full bg-ink-mid rounded-full h-1.5">
@@ -96,7 +98,7 @@ function RightPanel() {
 
                 {/* Recent Activity */}
                 <div className="ink-border rounded-lg p-3 bg-ink-dark">
-                  <h3 className="text-xs text-mountain-blue-glow mb-2">Recent Activity</h3>
+                  <h3 className="text-xs text-mountain-blue-glow mb-2">{t("Recent Activity", terminologyMode)}</h3>
                   <p className="text-xs text-mist-dark italic">
                     No recent cultivation records
                   </p>

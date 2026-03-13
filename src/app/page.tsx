@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import GlowButton from "@/components/ui/GlowButton";
 import GlowInput from "@/components/ui/GlowInput";
 import { useAuth } from "@/context/AuthContext";
+
+const REMEMBERED_CREDENTIALS_KEY = "cultivation-remembered-credentials";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -14,12 +16,24 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stayLoggedIn, setStayLoggedIn] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
-  // Note: No auto-redirect here. Remember Me only persists the session
-  // preference — the user must always authenticate with valid credentials.
+  // Load remembered credentials on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBERED_CREDENTIALS_KEY);
+      if (saved) {
+        const { username: savedUser, password: savedPass } = JSON.parse(saved);
+        if (savedUser) setUsername(savedUser);
+        if (savedPass) setPassword(savedPass);
+        setRememberMe(true);
+      }
+    } catch {}
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,9 +59,16 @@ export default function LoginPage() {
         return;
       }
 
-      // Save user session
+      // Save/clear remembered credentials
+      if (rememberMe && !isRegister) {
+        localStorage.setItem(REMEMBERED_CREDENTIALS_KEY, JSON.stringify({ username, password }));
+      } else {
+        localStorage.removeItem(REMEMBERED_CREDENTIALS_KEY);
+      }
+
+      // Save user session (stayLoggedIn = persist across restarts)
       if (data.user) {
-        login(data.user, rememberMe);
+        login(data.user, stayLoggedIn);
       }
 
       router.push("/dashboard");
@@ -177,34 +198,73 @@ export default function LoginPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <GlowInput
-                label="密码 · Secret Art"
-                type="password"
-                placeholder="Enter your secret art"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="space-y-1">
+                <label className="block text-xs text-mist-light tracking-wider uppercase">
+                  密码 · Secret Art
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your secret art"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-ink-dark border border-ink-light rounded-lg px-3 py-2 pr-9 text-sm text-cloud-white placeholder:text-mist-dark outline-none transition-all duration-300 focus:border-jade-glow focus:shadow-[0_0_12px_rgba(58,143,143,0.3)]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-mist-dark hover:text-mist-light transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Remember Me */}
+            {/* Login options */}
             {!isRegister && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.55 }}
-                className="flex items-center gap-2"
+                className="space-y-2"
               >
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-ink-light bg-ink-dark accent-jade-glow cursor-pointer"
-                />
-                <label htmlFor="rememberMe" className="text-xs text-mist-mid cursor-pointer select-none">
-                  记住我 · Remember Me
-                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="stayLoggedIn"
+                    checked={stayLoggedIn}
+                    onChange={(e) => setStayLoggedIn(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-ink-light bg-ink-dark accent-jade-glow cursor-pointer"
+                  />
+                  <label htmlFor="stayLoggedIn" className="text-xs text-mist-mid cursor-pointer select-none">
+                    长驻 · Stay Logged In
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-ink-light bg-ink-dark accent-jade-glow cursor-pointer"
+                  />
+                  <label htmlFor="rememberMe" className="text-xs text-mist-mid cursor-pointer select-none">
+                    记住我 · Remember Credentials
+                  </label>
+                </div>
               </motion.div>
             )}
 

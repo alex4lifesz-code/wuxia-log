@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import GlowButton from "@/components/ui/GlowButton";
 import { getDifficultyColorClass, getDifficultyGlowStyleScaled } from "@/lib/difficulty-styles";
@@ -258,8 +258,16 @@ export default function TrainingSidebar({
   onDrawerOpen 
 }: TrainingSidebarProps) {
   const [selectedDayFilter, setSelectedDayFilter] = useState<number | null>(null);
-  const [isCompact, setIsCompact] = useState(false);
+  const [isCompact, setIsCompact] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("cultivateos-sidebar-compact") === "true"; } catch { return false; }
+  });
   const { settings } = useDisplaySettings();
+
+  // Persist compact state
+  useEffect(() => {
+    try { localStorage.setItem("cultivateos-sidebar-compact", String(isCompact)); } catch {}
+  }, [isCompact]);
 
   // Compute technique counts per day
   const dayCounts = useMemo(() => {

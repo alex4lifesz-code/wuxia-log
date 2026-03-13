@@ -1,15 +1,43 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { AppProvider } from "@/context/AppContext";
 import { DisplaySettingsProvider } from "@/context/DisplaySettingsContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import TopBar from "@/components/navigation/TopBar";
 import LeftSidebar from "@/components/navigation/LeftSidebar";
 import RightPanel from "@/components/navigation/RightPanel";
 import BottomBar from "@/components/navigation/BottomBar";
 import FloatingMobileSidebar from "@/components/navigation/FloatingMobileSidebar";
+import SetupWizard, { SETUP_WIZARD_COMPLETED_KEY } from "@/components/ui/SetupWizard";
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const [showWizard, setShowWizard] = useState(false);
+
+  useEffect(() => {
+    const completed = localStorage.getItem(SETUP_WIZARD_COMPLETED_KEY);
+    if (!completed) {
+      setShowWizard(true);
+    }
+  }, []);
+
+  return (
+    <>
+      {showWizard && <SetupWizard onComplete={() => setShowWizard(false)} />}
+      <div className="h-screen flex flex-col overflow-hidden">
+        <TopBar />
+        <div className="flex-1 flex overflow-hidden">
+          <LeftSidebar />
+          <div className="flex-1 overflow-auto">{children}</div>
+          <RightPanel />
+        </div>
+        <FloatingMobileSidebar />
+        <BottomBar />
+      </div>
+    </>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -38,16 +66,7 @@ export default function DashboardLayout({
   return (
     <AppProvider>
       <DisplaySettingsProvider>
-        <div className="h-screen flex flex-col overflow-hidden">
-          <TopBar />
-          <div className="flex-1 flex overflow-hidden">
-            <LeftSidebar />
-            <div className="flex-1 overflow-auto">{children}</div>
-            <RightPanel />
-          </div>
-          <FloatingMobileSidebar />
-          <BottomBar />
-        </div>
+        <DashboardContent>{children}</DashboardContent>
       </DisplaySettingsProvider>
     </AppProvider>
   );

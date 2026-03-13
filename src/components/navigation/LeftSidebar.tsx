@@ -7,12 +7,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useRouter, usePathname } from "next/navigation";
 import { NavItem } from "@/lib/constants";
+import { t } from "@/lib/terminology";
 
 function LeftSidebar() {
   const { getSortedNavItems, collapsed, isMobile, reorderNavItems } = useAppContext();
   const { logout } = useAuth();
   const { settings } = useDisplaySettings();
   const gamificationVisible = settings.gamificationVisible ?? true;
+  const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
@@ -65,7 +67,7 @@ function LeftSidebar() {
               }}
             >
               <span className="text-base select-none">{item.icon}</span>
-              <span className="flex-1 text-left select-none">{item.label}</span>
+              <span className="flex-1 text-left select-none">{t(item.label, terminologyMode)}</span>
               {item.pinned && (
                 <span className="text-[10px] text-gold-dim">📌</span>
               )}

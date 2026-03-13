@@ -1,6 +1,7 @@
 /**
  * Difficulty styling utilities
- * Provides color coding and glow effects for techniques based on difficulty level
+ * Provides color coding and glow effects for techniques based on difficulty level.
+ * Reads CSS custom properties at runtime so per-theme overrides are respected.
  */
 
 export interface DifficultyStyle {
@@ -9,55 +10,48 @@ export interface DifficultyStyle {
   glowShadow: string;
 }
 
-const DIFFICULTY_STYLES: Record<string, DifficultyStyle> = {
-  "Mortal": {
-    textColor: "text-green-400",
-    glowColor: "#4ade80",
-    glowShadow: "0 0 12px rgba(74, 222, 128, 0.4), inset 0 0 12px rgba(74, 222, 128, 0.1)",
-  },
-  "Foundation Establishment": {
-    textColor: "text-amber-400",
-    glowColor: "#fbbf24",
-    glowShadow: "0 0 12px rgba(251, 191, 36, 0.4), inset 0 0 12px rgba(251, 191, 36, 0.1)",
-  },
-  "Core Formation": {
-    textColor: "text-red-400",
-    glowColor: "#f87171",
-    glowShadow: "0 0 12px rgba(248, 113, 113, 0.4), inset 0 0 12px rgba(248, 113, 113, 0.1)",
-  },
-  "Nascent Soul": {
-    textColor: "text-violet-400",
-    glowColor: "#a78bfa",
-    glowShadow: "0 0 12px rgba(167, 139, 250, 0.4), inset 0 0 12px rgba(167, 139, 250, 0.1)",
-  },
-  "Soul Splitting": {
-    textColor: "text-pink-400",
-    glowColor: "#f472b6",
-    glowShadow: "0 0 12px rgba(244, 114, 182, 0.4), inset 0 0 12px rgba(244, 114, 182, 0.1)",
-  },
-  "Tribulation Transcendence": {
-    textColor: "text-yellow-300",
-    glowColor: "#fbbf24",
-    glowShadow: "0 0 12px rgba(251, 191, 36, 0.5), inset 0 0 12px rgba(251, 191, 36, 0.15)",
-  },
-  "Immortal": {
-    textColor: "text-pink-300",
-    glowColor: "#f9a8d4",
-    glowShadow: "0 0 12px rgba(249, 168, 212, 0.4), inset 0 0 12px rgba(249, 168, 212, 0.1)",
-  },
+/** CSS variable mapping per difficulty level */
+const DIFFICULTY_CSS_VAR_MAP: Record<string, { colorVar: string; glowVar: string; textColor: string }> = {
+  "Mortal": { colorVar: "--difficulty-green", glowVar: "--glow-difficulty-green", textColor: "text-green-400" },
+  "Foundation Establishment": { colorVar: "--difficulty-amber", glowVar: "--glow-difficulty-amber", textColor: "text-amber-400" },
+  "Core Formation": { colorVar: "--difficulty-red", glowVar: "--glow-difficulty-red", textColor: "text-red-400" },
+  "Nascent Soul": { colorVar: "--difficulty-violet", glowVar: "--glow-difficulty-violet", textColor: "text-violet-400" },
+  "Soul Splitting": { colorVar: "--difficulty-pink", glowVar: "--glow-difficulty-pink", textColor: "text-pink-400" },
+  "Tribulation Transcendence": { colorVar: "--difficulty-amber", glowVar: "--glow-difficulty-amber", textColor: "text-yellow-300" },
+  "Immortal": { colorVar: "--difficulty-light-pink", glowVar: "--glow-difficulty-light-pink", textColor: "text-pink-300" },
 };
 
+/** Fallback values (match :root defaults) */
+const FALLBACK_STYLES: Record<string, DifficultyStyle> = {
+  "Mortal": { textColor: "text-green-400", glowColor: "#4ade80", glowShadow: "0 0 12px rgba(74, 222, 128, 0.4), inset 0 0 12px rgba(74, 222, 128, 0.1)" },
+  "Foundation Establishment": { textColor: "text-amber-400", glowColor: "#fbbf24", glowShadow: "0 0 12px rgba(251, 191, 36, 0.4), inset 0 0 12px rgba(251, 191, 36, 0.1)" },
+  "Core Formation": { textColor: "text-red-400", glowColor: "#f87171", glowShadow: "0 0 12px rgba(248, 113, 113, 0.4), inset 0 0 12px rgba(248, 113, 113, 0.1)" },
+  "Nascent Soul": { textColor: "text-violet-400", glowColor: "#a78bfa", glowShadow: "0 0 12px rgba(167, 139, 250, 0.4), inset 0 0 12px rgba(167, 139, 250, 0.1)" },
+  "Soul Splitting": { textColor: "text-pink-400", glowColor: "#f472b6", glowShadow: "0 0 12px rgba(244, 114, 182, 0.4), inset 0 0 12px rgba(244, 114, 182, 0.1)" },
+  "Tribulation Transcendence": { textColor: "text-yellow-300", glowColor: "#fbbf24", glowShadow: "0 0 12px rgba(251, 191, 36, 0.5), inset 0 0 12px rgba(251, 191, 36, 0.15)" },
+  "Immortal": { textColor: "text-pink-300", glowColor: "#f9a8d4", glowShadow: "0 0 12px rgba(249, 168, 212, 0.4), inset 0 0 12px rgba(249, 168, 212, 0.1)" },
+};
+
+function getCSSVar(varName: string): string {
+  if (typeof window === "undefined") return "";
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
 /**
- * Get difficulty styling (color and glow effect)
+ * Get difficulty styling (color and glow effect).
+ * Reads CSS custom properties so per-theme overrides take effect.
  */
 export function getDifficultyStyle(difficulty: string): DifficultyStyle {
-  return (
-    DIFFICULTY_STYLES[difficulty] || {
-      textColor: "text-mist-light",
-      glowColor: "#9ca3af",
-      glowShadow: "0 0 8px rgba(156, 163, 175, 0.2), inset 0 0 8px rgba(156, 163, 175, 0.05)",
-    }
-  );
+  const mapping = DIFFICULTY_CSS_VAR_MAP[difficulty];
+  if (!mapping) {
+    return { textColor: "text-mist-light", glowColor: "#9ca3af", glowShadow: "0 0 8px rgba(156, 163, 175, 0.2), inset 0 0 8px rgba(156, 163, 175, 0.05)" };
+  }
+
+  const fallback = FALLBACK_STYLES[difficulty];
+  const glowColor = getCSSVar(mapping.colorVar) || fallback.glowColor;
+  const glowShadow = getCSSVar(mapping.glowVar) || fallback.glowShadow;
+
+  return { textColor: mapping.textColor, glowColor, glowShadow };
 }
 
 /**

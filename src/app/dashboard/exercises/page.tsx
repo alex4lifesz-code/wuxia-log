@@ -375,7 +375,20 @@ export default function ExercisesPage() {
             ☯
           </motion.div>
         </div>
-      ) : filteredExercises.length === 0 ? (
+      ) : (
+        <div className="space-y-2">
+          {/* Main content search bar — always visible when exercises exist so users can refine queries */}
+          {(isMobile || (exercises.length > 0 && filteredExercises.length === 0)) && (
+            <div className="mb-4">
+              <GlowInput
+                placeholder="Search techniques..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          )}
+
+          {filteredExercises.length === 0 ? (
         <div className="text-center py-16">
           <motion.div
             animate={{ y: [0, -8, 0] }}
@@ -407,17 +420,7 @@ export default function ExercisesPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-2">
-          {/* Main content search bar — mobile only (desktop uses sidebar search) */}
-          {isMobile && (
-            <div className="mb-4">
-              <GlowInput
-                placeholder="Search techniques..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
+        <>
 
           {filteredExercises.map((exercise, i) => (
             <motion.div
@@ -498,6 +501,8 @@ export default function ExercisesPage() {
               </GlowCard>
             </motion.div>
           ))}
+        </>
+      )}
         </div>
       )}
 

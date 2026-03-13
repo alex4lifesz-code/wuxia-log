@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import PageLayout from "@/components/layout/PageLayout";
 import GlowButton from "@/components/ui/GlowButton";
@@ -8,6 +9,8 @@ import { useAppContext } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings, TechniqueDisplayMode, RecentSessionsCompactMode, DateFormatOption, ActiveCardStyle } from "@/context/DisplaySettingsContext";
 import PresetSlots from "@/components/ui/PresetSlots";
+import SetupWizard, { SETUP_WIZARD_COMPLETED_KEY } from "@/components/ui/SetupWizard";
+import { t } from "@/lib/terminology";
 
 function SettingsSidebar({ onLogout }: { onLogout: () => void }) {
   const { themeStyle } = useAppContext();
@@ -74,6 +77,7 @@ function SettingsSidebar({ onLogout }: { onLogout: () => void }) {
           <SettingRow label="Card Lore" value={(settings.activeCardLoreVisible ?? true) ? "Visible" : "Hidden"} color={(settings.activeCardLoreVisible ?? true) ? "text-jade-glow" : "text-mist-dark"} />
           <SettingRow label="Sidebar Lore" value={(settings.sidebarLoreVisible ?? true) ? "Visible" : "Hidden"} color={(settings.sidebarLoreVisible ?? true) ? "text-jade-glow" : "text-mist-dark"} />
           <SettingRow label="Column Colours" value={(settings.columnColorsEnabled ?? true) ? "On" : "Off"} color={(settings.columnColorsEnabled ?? true) ? "text-jade-glow" : "text-mist-dark"} />
+          <SettingRow label="Column Order" value={(settings.columnOrderGrouped ?? false) ? "Grouped" : "Paired"} color="text-jade-glow" />
         </div>
       </div>
 
@@ -112,6 +116,7 @@ export default function SettingsPage() {
     setThemeStyle,
   } = useAppContext();
   const { settings, updateSettings, resetSettings } = useDisplaySettings();
+  const [showWizard, setShowWizard] = useState(false);
 
   return (
     <PageLayout
@@ -488,6 +493,17 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center justify-between gap-3 py-1.5">
                   <div className="min-w-0">
+                    <span className="text-[11px] text-mist-light shrink-0 block">Column order</span>
+                    <span className="text-[9px] text-mist-dark block mt-0.5">
+                      {settings.columnOrderGrouped ? "W1, W2, W3, R1, R2, R3 (grouped)" : "W1, R1, W2, R2, W3, R3 (paired)"}
+                    </span>
+                  </div>
+                  <button type="button" role="switch" aria-checked={settings.columnOrderGrouped ?? false} onClick={() => updateSettings({ columnOrderGrouped: !(settings.columnOrderGrouped ?? false) })} className={`relative shrink-0 w-8 h-[18px] rounded-full transition-colors ${(settings.columnOrderGrouped ?? false) ? "bg-jade-glow" : "bg-ink-light"}`}>
+                    <span className={`absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-cloud-white shadow transition-transform ${(settings.columnOrderGrouped ?? false) ? "translate-x-[14px]" : "translate-x-0"}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-1.5">
+                  <div className="min-w-0">
                     <span className="text-[11px] text-mist-light shrink-0 block">Experience &amp; progression</span>
                     <span className="text-[9px] text-mist-dark block mt-0.5">Hide XP, realms, Quick View, and all gamification content</span>
                   </div>
@@ -549,7 +565,78 @@ export default function SettingsPage() {
           </div>
         </GlowCard>
 
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 4: TERMINOLOGY MODE
+           ══════════════════════════════════════════════════════════ */}
+        <GlowCard glow="gold" hoverable={false}>
+          <h3 className="text-sm text-gold uppercase tracking-wider mb-4">
+            Terminology
+          </h3>
+
+          <div>
+            <p className="text-xs text-mist-light font-medium mb-2">Interface Language Style</p>
+            <p className="text-xs text-mist-dark mb-3">
+              Switch between wuxia-inspired cultivation terminology and conventional fitness terminology. Difficulty level names are preserved in both modes.
+            </p>
+            <div className="flex rounded-md border border-ink-light overflow-hidden mb-4">
+              {([
+                { value: "fantasy" as const, label: "🏯 Cultivation", desc: "Wuxia-themed terms" },
+                { value: "normal" as const, label: "🏋️ Conventional", desc: "Standard fitness terms" },
+              ]).map((opt, idx) => (
+                <button
+                  key={opt.value}
+                  onClick={() => updateSettings({ terminologyMode: opt.value })}
+                  className={`flex-1 px-3 py-2.5 text-center transition-all ${
+                    settings.terminologyMode === opt.value
+                      ? "bg-jade-deep/30 text-jade-glow"
+                      : "text-mist-dark hover:text-mist-light hover:bg-ink-mid/20"
+                  } ${idx > 0 ? "border-l border-ink-light" : ""}`}
+                >
+                  <div className="text-[11px] font-medium">{opt.label}</div>
+                  <div className="text-[10px] opacity-60">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Preview of current mode */}
+            <div className="p-3 rounded-lg border border-ink-light/30 bg-ink-dark/50">
+              <p className="text-[9px] text-mist-dark uppercase tracking-wider mb-2">Current Labels</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["Dao Hall", "Training Grounds", "Technique Scroll", "Sect Register", "Cultivation Path", "Inner Chamber"].map((label) => (
+                  <span key={label} className="text-[10px] px-2 py-1 rounded-md border border-ink-light/30 bg-ink-dark/30 text-mist-light">
+                    {t(label, settings.terminologyMode)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </GlowCard>
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 5: SETUP WIZARD — Re-run
+           ══════════════════════════════════════════════════════════ */}
+        <GlowCard glow="jade" hoverable={false}>
+          <h3 className="text-sm text-jade-glow uppercase tracking-wider mb-4">
+            Setup Wizard
+          </h3>
+          <p className="text-xs text-mist-dark mb-4">
+            Re-run the guided setup wizard to reconfigure your display preferences, theme, terminology, and layout options.
+          </p>
+          <GlowButton
+            variant="jade"
+            size="sm"
+            glow
+            className="w-full"
+            onClick={() => setShowWizard(true)}
+          >
+            ✦ Open Setup Wizard
+          </GlowButton>
+        </GlowCard>
+
       </div>
+
+      {/* Setup Wizard modal */}
+      {showWizard && <SetupWizard onComplete={() => setShowWizard(false)} />}
     </PageLayout>
   );
 }

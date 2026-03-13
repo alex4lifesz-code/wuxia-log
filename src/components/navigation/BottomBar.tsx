@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useState, memo, useCallback, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { t } from "@/lib/terminology";
 
 const NAV_ICON_MAP: Record<string, ReactNode> = {
   "/dashboard": (
@@ -30,6 +31,7 @@ function BottomBar() {
   const { logout } = useAuth();
   const { settings } = useDisplaySettings();
   const gamificationVisible = settings.gamificationVisible ?? true;
+  const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
   const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
@@ -123,7 +125,7 @@ function BottomBar() {
                     onClick={() => handleNavigate(item.path)}
                   >
                     <span className="text-base flex-shrink-0">{item.icon}</span>
-                    <span className="text-[13px] font-medium truncate">{item.label}</span>
+                    <span className="text-[13px] font-medium truncate">{t(item.label, terminologyMode)}</span>
                   </motion.button>
                 ))}
                 <motion.button
@@ -170,7 +172,7 @@ function BottomBar() {
                   {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
                 </div>
                 <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
-                  {item.label.split(" ")[0]}
+                  {t(item.label, terminologyMode).split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
@@ -244,7 +246,7 @@ function BottomBar() {
                   {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
                 </div>
                 <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
-                  {item.label.split(" ")[0]}
+                  {t(item.label, terminologyMode).split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
