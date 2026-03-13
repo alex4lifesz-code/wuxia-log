@@ -35,6 +35,20 @@ export default function LoginPage() {
     } catch {}
   }, []);
 
+  // Apply saved theme on mount so login screen matches user's chosen theme
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem("cultivation-theme-style");
+      if (savedTheme) {
+        const themes = ["midnight-ink", "mountain-mist", "calligraphy", "sakura", "sakura-dark"];
+        document.documentElement.classList.remove(...themes);
+        if (themes.includes(savedTheme)) {
+          document.documentElement.classList.add(savedTheme);
+        }
+      }
+    } catch {}
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

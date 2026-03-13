@@ -162,7 +162,7 @@ function TechniqueRow({ exercise, onUpdateDayAssignments, focusedDay, isCompact 
                     ${isCompact ? 'text-[10px] px-1.5 py-1' : 'text-xs px-2 py-1.5'} rounded transition-all duration-200 font-medium
                     border disabled:opacity-50 disabled:cursor-not-allowed
                     ${isAssigned 
-                      ? 'bg-jade-deep/60 text-jade-glow border-jade-glow/40 shadow-[0_0_6px_rgba(58,143,143,0.2)]' 
+                      ? 'bg-jade-deep/60 text-jade-glow border-jade-glow/40 shadow-[0_0_6px_color-mix(in_srgb,var(--accent)_20%,transparent)]' 
                       : 'bg-ink-deep text-mist-dark border-ink-light hover:border-jade/30 hover:text-mist-light'
                     }
                     ${isFocused ? 'ring-1 ring-jade-glow/50' : ''}
@@ -227,14 +227,14 @@ function LongPressReorderItem({
       className={dragEnabled ? "cursor-grabbing" : "cursor-default"}
       animate={dragEnabled ? {
         scale: 1.02,
-        boxShadow: "0 0 12px rgba(58,143,143,0.3), 0 0 4px rgba(58,143,143,0.15)",
+        boxShadow: "0 0 12px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent)",
       } : {
         scale: 1,
         boxShadow: "0 0 0px rgba(0,0,0,0)",
       }}
       whileDrag={{
         scale: 1.04,
-        boxShadow: "0 8px 30px rgba(0,0,0,0.4), 0 0 15px rgba(58,143,143,0.3)",
+        boxShadow: "0 8px 30px rgba(0,0,0,0.4), 0 0 15px color-mix(in srgb, var(--accent) 30%, transparent)",
         zIndex: 50,
       }}
       transition={{ duration: 0.2 }}
@@ -389,8 +389,8 @@ export default function TechniqueManagementDrawer({
             className="fixed inset-y-0 right-0 z-50 flex flex-col max-w-full w-full md:w-[61.8%]"
             style={{
               background: "linear-gradient(180deg, rgba(20,25,30,1) 0%, rgba(15,18,22,1) 100%)",
-              borderLeft: "1px solid rgba(58,143,143,0.15)",
-              boxShadow: "-4px 0 30px rgba(0,0,0,0.5), -2px 0 10px rgba(58,143,143,0.08)",
+              borderLeft: "1px solid color-mix(in srgb, var(--accent) 15%, transparent)",
+              boxShadow: "-4px 0 30px rgba(0,0,0,0.5), -2px 0 10px color-mix(in srgb, var(--accent) 8%, transparent)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -399,7 +399,7 @@ export default function TechniqueManagementDrawer({
               className="p-5 space-y-4 shrink-0"
               style={{
                 background: "linear-gradient(180deg, rgba(30,38,42,0.9) 0%, rgba(20,25,30,0) 100%)",
-                borderBottom: "1px solid rgba(58,143,143,0.12)",
+                borderBottom: "1px solid color-mix(in srgb, var(--accent) 12%, transparent)",
               }}
             >
               <div className="flex items-center justify-between">
@@ -435,7 +435,7 @@ export default function TechniqueManagementDrawer({
                   </button>
                   <button
                     onClick={onClose}
-                    className="text-mist-dark hover:text-cloud-white p-2 rounded-lg hover:bg-white/5 transition-all duration-200 hover:shadow-[0_0_8px_rgba(58,143,143,0.2)]"
+                    className="text-mist-dark hover:text-cloud-white p-2 rounded-lg hover:bg-white/5 transition-all duration-200 hover:shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_20%,transparent)]"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -454,7 +454,7 @@ export default function TechniqueManagementDrawer({
                   placeholder="Search techniques..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-ink-deep border border-ink-light rounded-lg pl-10 pr-4 py-2.5 text-sm text-cloud-white placeholder:text-mist-dark outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_12px_rgba(58,143,143,0.15)]"
+                  className="w-full bg-ink-deep border border-ink-light rounded-lg pl-10 pr-4 py-2.5 text-sm text-cloud-white placeholder:text-mist-dark outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_12px_color-mix(in_srgb,var(--accent)_15%,transparent)]"
                 />
               </div>
 
@@ -463,7 +463,7 @@ export default function TechniqueManagementDrawer({
                 <select
                   value={realmFilter}
                   onChange={(e) => setRealmFilter(e.target.value)}
-                  className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_rgba(58,143,143,0.15)] cursor-pointer"
+                  className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_15%,transparent)] cursor-pointer"
                 >
                   <option value="">All Realms</option>
                   {DIFFICULTY_LEVELS.map((d) => (
@@ -474,7 +474,7 @@ export default function TechniqueManagementDrawer({
                 <select
                   value={pathFilter}
                   onChange={(e) => setPathFilter(e.target.value)}
-                  className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_rgba(58,143,143,0.15)] cursor-pointer"
+                  className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_15%,transparent)] cursor-pointer"
                 >
                   <option value="">All Paths</option>
                   {EXERCISE_TYPES.map((t) => (
@@ -486,7 +486,7 @@ export default function TechniqueManagementDrawer({
                   <select
                     value={targetGroupFilter}
                     onChange={(e) => setTargetGroupFilter(e.target.value)}
-                    className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_rgba(58,143,143,0.15)] cursor-pointer"
+                    className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_15%,transparent)] cursor-pointer"
                   >
                     <option value="">All Targets</option>
                     {TARGET_GROUP_CATEGORIES.map((cat) => {
@@ -512,7 +512,7 @@ export default function TechniqueManagementDrawer({
                     className={`
                       px-3 py-1.5 text-xs font-semibold transition-all duration-200 relative border-r border-ink-light/30
                       ${dayFilter === null 
-                        ? 'bg-jade-deep/60 text-jade-glow shadow-[inset_0_0_12px_rgba(58,143,143,0.15)]' 
+                        ? 'bg-jade-deep/60 text-jade-glow shadow-[inset_0_0_12px_color-mix(in_srgb,var(--accent)_15%,transparent)]' 
                         : 'bg-ink-dark/60 text-mist-dark hover:text-mist-light hover:bg-ink-mid/40'
                       }
                     `}
@@ -531,7 +531,7 @@ export default function TechniqueManagementDrawer({
                           flex-1 px-2 py-1.5 text-xs font-semibold transition-all duration-200 relative flex flex-col items-center gap-0.5
                           ${index < DAYS_OF_WEEK.length - 1 ? 'border-r border-ink-light/30' : ''}
                           ${dayFilter === index 
-                            ? 'bg-jade-deep/60 text-jade-glow shadow-[inset_0_0_12px_rgba(58,143,143,0.15)]' 
+                            ? 'bg-jade-deep/60 text-jade-glow shadow-[inset_0_0_12px_color-mix(in_srgb,var(--accent)_15%,transparent)]' 
                             : hasExercises
                               ? 'bg-ink-dark/60 text-jade-light/80 hover:text-jade-light hover:bg-ink-mid/40'
                               : 'bg-ink-dark/60 text-mist-dark hover:text-mist-light hover:bg-ink-mid/40'
@@ -643,7 +643,7 @@ export default function TechniqueManagementDrawer({
               className="px-5 py-3 shrink-0"
               style={{
                 background: "linear-gradient(0deg, rgba(20,25,30,1) 0%, rgba(20,25,30,0.8) 100%)",
-                borderTop: "1px solid rgba(58,143,143,0.1)",
+                borderTop: "1px solid color-mix(in srgb, var(--accent) 10%, transparent)",
               }}
             >
               <div className="flex items-center gap-4 text-[11px] text-mist-dark">

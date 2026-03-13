@@ -146,7 +146,7 @@ function PageLayout({
           </svg>
         </button>
       </div>
-      <div className="flex-1 min-h-0 px-1.5">
+      <div className="flex-1 min-h-0 px-1.5 overflow-y-auto scrollbar-hide">
         {sidebar}
       </div>
       <div className="h-2 shrink-0" />
@@ -159,7 +159,7 @@ function PageLayout({
       <div className="px-5 pt-4 pb-2.5 shrink-0 flex items-center justify-between">
         <h2 className="text-xs text-jade-glow uppercase tracking-widest font-semibold">{title}</h2>
       </div>
-      <div className="flex-1 min-h-0 px-1.5">
+      <div className="flex-1 min-h-0 px-1.5 overflow-y-auto scrollbar-hide">
         {sidebar}
       </div>
       <div className="h-2 shrink-0" />

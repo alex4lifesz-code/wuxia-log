@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getDifficultyXP } from "@/lib/constants";
 
 /**
  * POST /api/workouts/import
@@ -141,14 +142,4 @@ function excelSerialToDate(serial: number): Date {
   // Excel epoch is Jan 1 1900, but it erroneously counts 1900 as leap year
   const utcDays = Math.floor(serial) - 25569; // 25569 = days between 1900-01-01 and 1970-01-01
   return new Date(utcDays * 86400 * 1000);
-}
-
-function getDifficultyXP(difficulty: string): number {
-  switch (difficulty.toLowerCase()) {
-    case "beginner": return 10;
-    case "intermediate": return 20;
-    case "advanced": return 30;
-    case "master": return 50;
-    default: return 10;
-  }
 }

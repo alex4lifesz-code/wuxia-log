@@ -164,21 +164,21 @@ function BottomBar() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => { router.push(item.path); setMobileSidebarOpen(false); setMenuOpen(false); }}
                 className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
-                  isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
+                  isActive ? "text-[var(--accent)]" : "text-mist-mid active:text-mist-light"
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <div className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
                   {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
                 </div>
-                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-[var(--accent)]" : ""}`}>
                   {t(item.label, terminologyMode).split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
                     layoutId="bottomBarActiveTab"
-                    className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
-                    style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                    className="absolute -bottom-0.5 w-6 h-[3px] rounded-full"
+                    style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 8px color-mix(in srgb, var(--accent) 60%, transparent)' }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -238,21 +238,21 @@ function BottomBar() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => { router.push(item.path); setMobileSidebarOpen(false); setMenuOpen(false); }}
                 className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
-                  isActive ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
+                  isActive ? "text-[var(--accent)]" : "text-mist-mid active:text-mist-light"
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <div className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
                   {NAV_ICON_MAP[item.path] || <span className="text-lg">{item.icon}</span>}
                 </div>
-                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-jade-glow" : ""}`}>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? "text-[var(--accent)]" : ""}`}>
                   {t(item.label, terminologyMode).split(" ")[0]}
                 </span>
                 {isActive && (
                   <motion.div
                     layoutId="bottomBarActiveTab"
-                    className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
-                    style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                    className="absolute -bottom-0.5 w-6 h-[3px] rounded-full"
+                    style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 8px color-mix(in srgb, var(--accent) 60%, transparent)' }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -265,7 +265,7 @@ function BottomBar() {
             whileTap={{ scale: 0.9 }}
             onClick={handleMenuToggle}
             className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] pt-2 pb-1 rounded-2xl transition-colors ${
-              menuOpen ? "text-jade-glow" : "text-mist-mid active:text-mist-light"
+              menuOpen ? "text-[var(--accent)]" : "text-mist-mid active:text-mist-light"
             }`}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
@@ -279,14 +279,14 @@ function BottomBar() {
                 <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none" />
               </svg>
             </motion.div>
-            <span className={`text-[10px] font-medium tracking-wide ${menuOpen ? "text-jade-glow" : ""}`}>
+            <span className={`text-[10px] font-medium tracking-wide ${menuOpen ? "text-[var(--accent)]" : ""}`}>
               More
             </span>
             {menuOpen && (
               <motion.div
                 layoutId="bottomBarActiveTab"
-                className="absolute -bottom-0.5 w-6 h-[3px] bg-jade-glow rounded-full"
-                style={{ boxShadow: '0 0 8px rgba(52,211,153,0.6)' }}
+                className="absolute -bottom-0.5 w-6 h-[3px] rounded-full"
+                style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 8px color-mix(in srgb, var(--accent) 60%, transparent)' }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}

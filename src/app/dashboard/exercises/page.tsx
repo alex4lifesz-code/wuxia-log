@@ -378,15 +378,13 @@ export default function ExercisesPage() {
       ) : (
         <div className="space-y-2">
           {/* Main content search bar — always visible so users can refine queries regardless of results */}
-          {(isMobile || exercises.length > 0) && (
-            <div className="mb-4">
-              <GlowInput
-                placeholder="Search techniques..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="mb-4">
+            <GlowInput
+              placeholder="Search techniques..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
           {filteredExercises.length === 0 ? (
         <div className="text-center py-16">

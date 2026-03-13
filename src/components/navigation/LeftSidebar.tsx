@@ -28,7 +28,7 @@ function LeftSidebar() {
       initial={{ x: -60, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="w-56 bg-ink-deep border-r border-ink-light flex flex-col py-4 shrink-0 overflow-y-auto sidebar-scroll"
+      className="w-56 bg-ink-deep border-r border-ink-light flex flex-col py-4 shrink-0 overflow-y-auto scrollbar-hide"
     >
       <div className="px-4 mb-4 flex items-center justify-between">
         <h2 className="text-xs text-mist-dark uppercase tracking-widest">Navigation</h2>
