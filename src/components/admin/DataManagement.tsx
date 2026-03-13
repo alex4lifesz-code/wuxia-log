@@ -101,7 +101,7 @@ export default function DataManagement() {
       };
 
       const dateKey = resolveKey(["date", "day", "datum"]);
-      const exerciseKey = resolveKey(["exercise", "name", "technique", "movement", "workout"]);
+      let exerciseKey = resolveKey(["exercise", "name", "technique", "movement", "workout"]);
       const w1Key = resolveKey(["w1", "weight1", "weight 1"]);
       const r1Key = resolveKey(["r1", "reps1", "reps 1"]);
       const w2Key = resolveKey(["w2", "weight2", "weight 2"]);
@@ -109,6 +109,15 @@ export default function DataManagement() {
       const w3Key = resolveKey(["w3", "weight3", "weight 3"]);
       const r3Key = resolveKey(["r3", "reps3", "reps 3"]);
       const notesKey = resolveKey(["notes", "note", "comment", "comments"]);
+
+      // Fallback: if exercise column not found, use the first unmatched column
+      if (!exerciseKey) {
+        const matched = new Set([dateKey, w1Key, r1Key, w2Key, r2Key, w3Key, r3Key, notesKey].filter(Boolean));
+        const unmatched = firstRowKeys.filter((k) => !matched.has(k));
+        if (unmatched.length === 1) {
+          exerciseKey = unmatched[0];
+        }
+      }
 
       if (!exerciseKey) {
         setImportStatus({ type: "error", message: `Cannot find exercise column. Headers found: ${firstRowKeys.join(", ")}` });
