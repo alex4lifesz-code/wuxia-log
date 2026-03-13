@@ -81,26 +81,52 @@ export default function DataManagement() {
         return;
       }
 
-      // Map header names (case-insensitive)
-      const sessions = rows.map((row) => {
-        const get = (keys: string[]) => {
-          for (const k of keys) {
-            for (const rk of Object.keys(row)) {
-              if (rk.toLowerCase().trim() === k.toLowerCase()) return row[rk];
-            }
+      // Build a column key resolver: for each row key, strip whitespace/BOM and lowercase
+      const firstRowKeys = Object.keys(rows[0]);
+      const resolveKey = (patterns: string[]): string | null => {
+        for (const rk of firstRowKeys) {
+          const clean = rk.replace(/[\u200B\uFEFF\u00A0]/g, "").trim().toLowerCase();
+          for (const p of patterns) {
+            if (clean === p.toLowerCase()) return rk;
           }
-          return "";
-        };
+        }
+        // Fallback: partial/substring match
+        for (const rk of firstRowKeys) {
+          const clean = rk.replace(/[\u200B\uFEFF\u00A0]/g, "").trim().toLowerCase();
+          for (const p of patterns) {
+            if (clean.includes(p.toLowerCase()) || p.toLowerCase().includes(clean)) return rk;
+          }
+        }
+        return null;
+      };
+
+      const dateKey = resolveKey(["date", "day", "datum"]);
+      const exerciseKey = resolveKey(["exercise", "name", "technique", "movement", "workout"]);
+      const w1Key = resolveKey(["w1", "weight1", "weight 1"]);
+      const r1Key = resolveKey(["r1", "reps1", "reps 1"]);
+      const w2Key = resolveKey(["w2", "weight2", "weight 2"]);
+      const r2Key = resolveKey(["r2", "reps2", "reps 2"]);
+      const w3Key = resolveKey(["w3", "weight3", "weight 3"]);
+      const r3Key = resolveKey(["r3", "reps3", "reps 3"]);
+      const notesKey = resolveKey(["notes", "note", "comment", "comments"]);
+
+      if (!exerciseKey) {
+        setImportStatus({ type: "error", message: `Cannot find exercise column. Headers found: ${firstRowKeys.join(", ")}` });
+        return;
+      }
+
+      // Map header names using resolved keys
+      const sessions = rows.map((row) => {
         return {
-          date: get(["date", "Date"]),
-          exercise: get(["exercise", "Exercise", "name", "Name"]),
-          w1: get(["w1", "W1", "weight1", "Weight1"]),
-          r1: get(["r1", "R1", "reps1", "Reps1"]),
-          w2: get(["w2", "W2", "weight2", "Weight2"]),
-          r2: get(["r2", "R2", "reps2", "Reps2"]),
-          w3: get(["w3", "W3", "weight3", "Weight3"]),
-          r3: get(["r3", "R3", "reps3", "Reps3"]),
-          notes: get(["notes", "Notes", "note", "Note"]),
+          date: dateKey ? row[dateKey] : "",
+          exercise: exerciseKey ? row[exerciseKey] : "",
+          w1: w1Key ? row[w1Key] : "",
+          r1: r1Key ? row[r1Key] : "",
+          w2: w2Key ? row[w2Key] : "",
+          r2: r2Key ? row[r2Key] : "",
+          w3: w3Key ? row[w3Key] : "",
+          r3: r3Key ? row[r3Key] : "",
+          notes: notesKey ? row[notesKey] : "",
         };
       });
 
