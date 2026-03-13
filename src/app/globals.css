@@ -68,6 +68,7 @@
   --glow-gold: 0 0 20px rgba(232, 200, 74, 0.4), 0 0 40px rgba(232, 200, 74, 0.2);
   --glow-blue: 0 0 20px rgba(74, 143, 184, 0.4), 0 0 40px rgba(74, 143, 184, 0.2);
   --glow-subtle: 0 0 10px rgba(58, 143, 143, 0.15);
+  --glow-modal: 0 0 40px rgba(58, 143, 143, 0.4), 0 0 80px rgba(58, 143, 143, 0.2), inset 0 0 30px rgba(58, 143, 143, 0.1);
 
   /* Column colours for W/R differentiation */
   --col-weight: #3a8f8f;
@@ -369,6 +370,7 @@ body {
   --glow-gold: 0 0 15px rgba(112, 90, 32, 0.25), 0 0 30px rgba(112, 90, 32, 0.1);
   --glow-blue: 0 0 15px rgba(42, 80, 112, 0.25), 0 0 30px rgba(42, 80, 112, 0.1);
   --glow-subtle: 0 0 8px rgba(26, 96, 96, 0.1);
+  --glow-modal: 0 0 40px rgba(26, 96, 96, 0.35), 0 0 80px rgba(26, 96, 96, 0.15), inset 0 0 30px rgba(26, 96, 96, 0.08);
 
   --col-weight: #1a6060;
   --col-weight-bg: rgba(26, 96, 96, 0.1);
@@ -451,6 +453,7 @@ body {
   --glow-gold: 0 0 20px rgba(176, 160, 112, 0.2), 0 0 40px rgba(176, 160, 112, 0.08);
   --glow-blue: 0 0 20px rgba(112, 128, 144, 0.2), 0 0 40px rgba(112, 128, 144, 0.08);
   --glow-subtle: 0 0 10px rgba(144, 144, 144, 0.08);
+  --glow-modal: 0 0 40px rgba(144, 144, 144, 0.3), 0 0 80px rgba(144, 144, 144, 0.15), inset 0 0 30px rgba(144, 144, 144, 0.08);
 
   --col-weight: #909090;
   --col-weight-bg: rgba(144, 144, 144, 0.06);
@@ -529,6 +532,7 @@ body {
   --glow-gold: 0 0 20px rgba(240, 208, 128, 0.35), 0 0 40px rgba(240, 208, 128, 0.15);
   --glow-blue: 0 0 20px rgba(128, 144, 192, 0.35), 0 0 40px rgba(128, 144, 192, 0.15);
   --glow-subtle: 0 0 10px rgba(224, 120, 152, 0.12);
+  --glow-modal: 0 0 40px rgba(224, 120, 152, 0.35), 0 0 80px rgba(224, 120, 152, 0.18), inset 0 0 30px rgba(224, 120, 152, 0.1);
 
   --col-weight: #e07898;
   --col-weight-bg: rgba(224, 120, 152, 0.08);
@@ -585,6 +589,7 @@ body {
   --glow-gold: 0 0 20px rgba(232, 152, 170, 0.3), 0 0 40px rgba(232, 152, 170, 0.12);
   --glow-blue: 0 0 20px rgba(136, 112, 168, 0.2), 0 0 40px rgba(136, 112, 168, 0.08);
   --glow-subtle: 0 0 10px rgba(212, 80, 138, 0.15);
+  --glow-modal: 0 0 40px rgba(212, 80, 138, 0.4), 0 0 80px rgba(212, 80, 138, 0.2), inset 0 0 30px rgba(212, 80, 138, 0.1);
 
   --col-weight: #9a88a0;
   --col-weight-bg: rgba(154, 136, 160, 0.06);
@@ -704,6 +709,7 @@ html.mountain-mist {
   --glow-gold: 0 0 16px rgba(136, 120, 64, 0.2), 0 0 32px rgba(136, 120, 64, 0.1);
   --glow-blue: 0 0 16px rgba(58, 106, 138, 0.2), 0 0 32px rgba(58, 106, 138, 0.1);
   --glow-subtle: 0 0 8px rgba(45, 122, 122, 0.1);
+  --glow-modal: 0 0 40px rgba(45, 122, 122, 0.3), 0 0 80px rgba(45, 122, 122, 0.15), inset 0 0 30px rgba(45, 122, 122, 0.08);
 
   /* Column colours for W/R differentiation */
   --col-weight: #2d7a7a;
@@ -807,6 +813,7 @@ html.calligraphy {
   --glow-gold: 0 0 20px rgba(240, 184, 112, 0.3), 0 0 40px rgba(240, 184, 112, 0.12);
   --glow-blue: 0 0 20px rgba(170, 170, 170, 0.2), 0 0 40px rgba(170, 170, 170, 0.08);
   --glow-subtle: 0 0 10px rgba(212, 168, 96, 0.15);
+  --glow-modal: 0 0 40px rgba(212, 168, 96, 0.35), 0 0 80px rgba(212, 168, 96, 0.15), inset 0 0 30px rgba(212, 168, 96, 0.1);
 
   /* Column colours for W/R differentiation */
   --col-weight: #888888;
@@ -907,6 +914,7 @@ html.sakura {
   --glow-gold: 0 0 20px rgba(232, 184, 144, 0.4), 0 0 40px rgba(232, 184, 144, 0.2);
   --glow-blue: 0 0 20px rgba(154, 175, 204, 0.4), 0 0 40px rgba(154, 175, 204, 0.2);
   --glow-subtle: 0 0 10px rgba(232, 80, 122, 0.25);
+  --glow-modal: 0 0 40px rgba(232, 80, 122, 0.4), 0 0 80px rgba(232, 80, 122, 0.2), inset 0 0 30px rgba(232, 80, 122, 0.1);
 
   /* Column colours for W/R differentiation */
   --col-weight: #7a96b3;
@@ -1010,6 +1018,7 @@ html.sakura-dark {
   --glow-gold: 0 0 20px rgba(232, 152, 170, 0.3), 0 0 40px rgba(232, 152, 170, 0.12);
   --glow-blue: 0 0 20px rgba(136, 112, 168, 0.2), 0 0 40px rgba(136, 112, 168, 0.08);
   --glow-subtle: 0 0 10px rgba(212, 80, 138, 0.15);
+  --glow-modal: 0 0 40px rgba(212, 80, 138, 0.4), 0 0 80px rgba(212, 80, 138, 0.2), inset 0 0 30px rgba(212, 80, 138, 0.1);
 
   /* Column colours for W/R differentiation */
   --col-weight: #9a88a0;

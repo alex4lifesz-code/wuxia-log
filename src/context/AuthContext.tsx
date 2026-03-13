@@ -70,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     await clearPersistedUser();
     localStorage.removeItem("cultivation-nav-state");
-    localStorage.removeItem("cultivation-theme");
     router.push("/");
   }, [router]);
 

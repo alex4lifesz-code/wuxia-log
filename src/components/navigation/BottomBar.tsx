@@ -153,7 +153,7 @@ function BottomBar() {
           }}
         >
           {/* Glow accent line */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-jade-glow/15 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(to right, transparent, color-mix(in srgb, var(--accent) 15%, transparent), transparent)` }} />
 
           {/* Left nav items */}
           {primaryItems.slice(0, 2).map((item) => {
@@ -193,17 +193,17 @@ function BottomBar() {
               onClick={handleFABPress}
               className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-colors ${
                 activeDrawerClose
-                  ? "bg-crimson-glow/90 shadow-crimson-glow/40"
+                  ? "bg-crimson-glow/90"
                   : mobileSidebarOpen
-                    ? "bg-jade-glow shadow-jade-glow/40"
-                    : "bg-gradient-to-br from-jade-deep to-jade-glow/80 shadow-jade-glow/20"
+                    ? "bg-[var(--accent)]"
+                    : "bg-gradient-to-br from-[var(--accent)]/70 to-[var(--accent)]/90"
               }`}
               style={{
                 boxShadow: activeDrawerClose
                   ? '0 4px 20px rgba(220,38,38,0.4), 0 0 30px rgba(220,38,38,0.15)'
                   : mobileSidebarOpen
-                    ? '0 4px 20px rgba(52,211,153,0.5), 0 0 40px rgba(52,211,153,0.15)'
-                    : '0 4px 16px rgba(52,211,153,0.3), 0 0 30px rgba(52,211,153,0.1)',
+                    ? `0 4px 20px color-mix(in srgb, var(--accent) 50%, transparent), 0 0 40px color-mix(in srgb, var(--accent) 15%, transparent)`
+                    : `0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 30px color-mix(in srgb, var(--accent) 10%, transparent)`,
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
@@ -224,7 +224,7 @@ function BottomBar() {
                 )}
               </motion.svg>
             </motion.button>
-            <span className={`text-[9px] font-semibold mt-0.5 tracking-wide ${activeDrawerClose ? "text-crimson-glow" : mobileSidebarOpen ? "text-jade-glow" : "text-mist-dark"}`}>
+            <span className={`text-[9px] font-semibold mt-0.5 tracking-wide ${activeDrawerClose ? "text-crimson-glow" : mobileSidebarOpen ? "text-[var(--accent)]" : "text-mist-dark"}`}>
               {activeDrawerClose ? "Close" : "Menu"}
             </span>
           </div>

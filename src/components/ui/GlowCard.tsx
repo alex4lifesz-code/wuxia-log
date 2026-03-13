@@ -98,12 +98,12 @@ export function GlowModal({
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className={`bg-ink-deep w-full max-w-lg max-h-[80vh] overflow-y-auto pointer-events-auto ${panelClassName}`}
+              className={`bg-ink-deep w-full max-w-lg max-h-[80vh] overflow-y-auto pointer-events-auto glow-modal-container ${panelClassName}`}
               style={{
                 borderRadius: '24px',
                 boxShadow: glowColor 
                   ? `0 0 40px ${glowColor}60, 0 0 80px ${glowColor}30, inset 0 0 30px ${glowColor}15` 
-                  : '0 0 40px rgba(45, 95, 79, 0.4), 0 0 80px rgba(45, 95, 79, 0.2), inset 0 0 30px rgba(45, 95, 79, 0.1)'
+                  : 'var(--glow-modal, 0 0 40px rgba(45, 95, 79, 0.4), 0 0 80px rgba(45, 95, 79, 0.2), inset 0 0 30px rgba(45, 95, 79, 0.1))'
               }}
             >
               {!hideHeader && (

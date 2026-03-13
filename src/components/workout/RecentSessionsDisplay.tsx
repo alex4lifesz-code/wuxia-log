@@ -449,16 +449,6 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                     <option value={-1}>All Sessions</option>
                   </select>
                 )}
-                {!isEditMode && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={fetchSessions}
-                    className="text-xs text-mist-light hover:text-jade-light transition-colors"
-                  >
-                    🔄 Refresh
-                  </motion.button>
-                )}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

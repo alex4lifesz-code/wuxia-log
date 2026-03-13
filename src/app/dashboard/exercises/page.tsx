@@ -377,8 +377,8 @@ export default function ExercisesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {/* Main content search bar — always visible when exercises exist so users can refine queries */}
-          {(isMobile || (exercises.length > 0 && filteredExercises.length === 0)) && (
+          {/* Main content search bar — always visible so users can refine queries regardless of results */}
+          {(isMobile || exercises.length > 0) && (
             <div className="mb-4">
               <GlowInput
                 placeholder="Search techniques..."

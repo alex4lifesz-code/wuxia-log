@@ -1,14 +1,43 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import GlowButton from "@/components/ui/GlowButton";
 import GlowCard from "@/components/ui/GlowCard";
 import { GlowModal } from "@/components/ui/GlowCard";
 import { useAuth } from "@/context/AuthContext";
 import * as XLSX from "xlsx";
 
+interface UserOption {
+  id: string;
+  username: string;
+  name: string;
+}
+
 export default function DataManagement() {
   const { user } = useAuth();
+
+  // User selection for targeted operations
+  const [allUsers, setAllUsers] = useState<UserOption[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+
+  // Fetch all users for the dropdown
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+        if (data.users) {
+          setAllUsers(data.users);
+          if (user?.id) setSelectedUserId(user.id);
+        }
+      } catch {}
+    }
+    fetchUsers();
+  }, [user?.id]);
+
+  // The effective user ID for user-specific operations
+  const targetUserId = selectedUserId || user?.id || "";
+  const targetUserName = allUsers.find(u => u.id === targetUserId)?.name || user?.name || "Unknown";
 
   // Training sessions state
   const xlsxInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +66,7 @@ export default function DataManagement() {
   // ── Training Sessions Import ──
   const handleXlsxImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !targetUserId) return;
 
     setImportStatus({ type: "loading", message: "Parsing spreadsheet..." });
 
@@ -80,7 +109,7 @@ export default function DataManagement() {
       const res = await fetch("/api/workouts/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, sessions }),
+        body: JSON.stringify({ userId: targetUserId, sessions }),
       });
 
       const result = await res.json();
@@ -100,7 +129,7 @@ export default function DataManagement() {
 
   // ── Remove All Training Sessions ──
   const handleRemoveAll = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     setShowRemoveConfirm(false);
     setRemoveStatus({ type: "loading", message: "Removing all sessions..." });
 
@@ -108,7 +137,7 @@ export default function DataManagement() {
       const res = await fetch("/api/workouts/import", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ userId: targetUserId }),
       });
 
       const result = await res.json();
@@ -125,10 +154,10 @@ export default function DataManagement() {
 
   // ── Export Training Sessions ──
   const handleExportSessions = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     setSessionExportStatus({ type: "loading", message: "Fetching sessions..." });
     try {
-      const res = await fetch(`/api/workouts?userId=${user.id}`);
+      const res = await fetch(`/api/workouts?userId=${targetUserId}`);
       const data = await res.json();
       const workouts = data.workouts || [];
 
@@ -503,8 +532,29 @@ export default function DataManagement() {
           Data Management
         </h3>
 
+        {/* ── Target User Selector ── */}
+        {allUsers.length > 0 && (
+          <div className="mb-4 pb-4 border-b border-ink-light/50">
+            <label className="text-xs text-mist-light font-medium mb-1 block">Target Cultivator</label>
+            <p className="text-[10px] text-mist-dark mb-2">
+              Select which cultivator&apos;s data to import, export, or delete training sessions for.
+            </p>
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="w-full bg-ink-dark border border-ink-light rounded-lg px-3 py-2 text-sm text-cloud-white outline-none transition-all duration-300 focus:border-jade-glow focus:shadow-[0_0_12px_rgba(58,143,143,0.3)]"
+            >
+              {allUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.username}){u.id === user?.id ? " — You" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* ── Training Sessions Section ── */}
-        <p className="text-xs text-mist-light font-medium mb-2">Training Sessions</p>
+        <p className="text-xs text-mist-light font-medium mb-2">Training Sessions {targetUserId !== user?.id && <span className="text-gold">— {targetUserName}</span>}</p>
         <p className="text-xs text-mist-dark mb-3">
           Import historical training data from XLSX spreadsheets, export existing records, or purge all sessions.
           Expected columns: <span className="text-mist-light font-mono">Date, Exercise, W1, R1, W2, R2, W3, R3, Notes</span>
@@ -743,7 +793,7 @@ export default function DataManagement() {
       >
         <div className="space-y-4">
           <p className="text-sm text-mist-light">
-            This will permanently delete <span className="text-crimson-light font-semibold">all</span> of your recorded training sessions. This action cannot be undone.
+            This will permanently delete <span className="text-crimson-light font-semibold">all</span> recorded training sessions for <span className="text-crimson-light font-semibold">{targetUserName}</span>. This action cannot be undone.
           </p>
           <div className="flex gap-3">
             <GlowButton

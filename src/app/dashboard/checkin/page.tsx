@@ -132,6 +132,9 @@ export default function CheckInPage() {
   const [editingNote, setEditingNote] = useState<{ date: string; note: string } | null>(null);
   const [showNotesPanel, setShowNotesPanel] = useState(false);
   const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>([]);
+  const [dateRange, setDateRange] = useState<"all" | "7" | "14" | "30" | "90" | "custom">("all");
+  const [customRangeStart, setCustomRangeStart] = useState("");
+  const [customRangeEnd, setCustomRangeEnd] = useState("");
 
   const fetchCommunityNotes = useCallback(async () => {
     try {
@@ -396,6 +399,26 @@ export default function CheckInPage() {
     }
   };
 
+  // Filter rows by date range
+  const filteredRows = rows.filter((row) => {
+    if (dateRange === "all") return true;
+    if (dateRange === "custom") {
+      if (customRangeStart && row.date < customRangeStart) return false;
+      if (customRangeEnd && row.date > customRangeEnd) return false;
+      return true;
+    }
+    const days = parseInt(dateRange);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return new Date(row.date + "T00:00:00") >= cutoff;
+  });
+
+  // Total check-in counts per user
+  const totalCheckIns = users.reduce<Record<string, number>>((acc, u) => {
+    acc[u.id] = rows.filter((r) => r.entries[u.id]?.present).length;
+    return acc;
+  }, {});
+
   return (
     <PageLayout
       title="Sect Register"
@@ -534,6 +557,64 @@ export default function CheckInPage() {
           )}
           <div className="flex justify-center">
             <div className="overflow-x-auto w-full">
+              {/* Date Range Filter */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="text-[10px] text-mist-dark uppercase tracking-wider">Range:</span>
+                {([
+                  ["all", "All"],
+                  ["7", "7d"],
+                  ["14", "14d"],
+                  ["30", "30d"],
+                  ["90", "90d"],
+                  ["custom", "Custom"],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setDateRange(value)}
+                    className={`px-2 py-0.5 text-[10px] rounded border transition-all ${
+                      dateRange === value
+                        ? "bg-jade-deep/30 border-jade-glow/50 text-jade-light"
+                        : "border-ink-light/50 text-mist-dark hover:text-mist-light hover:border-ink-light"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+                {dateRange === "custom" && (
+                  <div className="flex items-center gap-1 ml-1">
+                    <input
+                      type="date"
+                      value={customRangeStart}
+                      onChange={(e) => setCustomRangeStart(e.target.value)}
+                      className="bg-ink-dark border border-ink-light rounded px-1.5 py-0.5 text-[10px] text-cloud-white outline-none focus:border-jade-glow transition-colors"
+                    />
+                    <span className="text-mist-dark text-[10px]">to</span>
+                    <input
+                      type="date"
+                      value={customRangeEnd}
+                      onChange={(e) => setCustomRangeEnd(e.target.value)}
+                      className="bg-ink-dark border border-ink-light rounded px-1.5 py-0.5 text-[10px] text-cloud-white outline-none focus:border-jade-glow transition-colors"
+                    />
+                  </div>
+                )}
+                <span className="text-[10px] text-mist-dark ml-auto">
+                  {filteredRows.length} of {rows.length} records
+                </span>
+              </div>
+
+              {/* Total Check-In Counts */}
+              {users.length > 0 && (
+                <div className="flex flex-wrap gap-3 mb-3 p-2 bg-ink-dark/40 rounded-lg border border-ink-light/30">
+                  <span className="text-[10px] text-mist-dark uppercase tracking-wider self-center">Totals:</span>
+                  {users.map((u) => (
+                    <div key={u.id} className="flex items-center gap-1.5 text-[10px]">
+                      <span className="text-mist-light">{u.name}:</span>
+                      <span className="text-jade-glow font-semibold">{totalCheckIns[u.id] || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <table className="mx-auto text-xs min-w-full border-collapse table-auto">
                 <thead>
                   <tr className="border-b-2 border-jade-glow/50 bg-ink-mid/40">
@@ -563,17 +644,17 @@ export default function CheckInPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.length === 0 ? (
+                  {filteredRows.length === 0 ? (
                     <tr>
                       <td
                         colSpan={3 + users.length * 2}
                         className="py-12 text-center text-mist-dark italic"
                       >
-                        No records yet. Check-in records will be created automatically.
+                        {rows.length === 0 ? "No records yet. Check-in records will be created automatically." : "No records match the selected date range."}
                       </td>
                     </tr>
                   ) : (
-                    rows.map((row, rowIdx) => (
+                    filteredRows.map((row, rowIdx) => (
                       <motion.tr
                         key={row.date}
                         initial={{ opacity: 0, x: -10 }}
