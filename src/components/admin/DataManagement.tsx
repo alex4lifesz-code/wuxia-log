@@ -115,8 +115,11 @@ export default function DataManagement() {
       const result = await res.json();
 
       if (res.ok) {
-        const msg = `Imported ${result.imported} session(s)${result.skipped ? `, ${result.skipped} skipped` : ""}`;
-        setImportStatus({ type: "success", message: msg });
+        let msg = `Imported ${result.imported} session(s)${result.skipped ? `, ${result.skipped} skipped` : ""}`;
+        if (result.errors && result.errors.length > 0) {
+          msg += `\n${result.errors.join("\n")}`;
+        }
+        setImportStatus({ type: result.skipped && !result.imported ? "error" : "success", message: msg });
       } else {
         setImportStatus({ type: "error", message: result.error || "Import failed" });
       }
@@ -578,7 +581,7 @@ export default function DataManagement() {
               className="hidden"
             />
             {importStatus.type !== "idle" && (
-              <p className={`text-xs ${
+              <p className={`text-xs whitespace-pre-line ${
                 importStatus.type === "success" ? "text-jade-glow" :
                 importStatus.type === "error" ? "text-crimson-light" :
                 "text-mist-light"
