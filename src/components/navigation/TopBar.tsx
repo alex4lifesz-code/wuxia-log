@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import DisplaySettingsPopup from "@/components/workout/DisplaySettingsPopup";
+import { t } from "@/lib/terminology";
 
 interface Stats {
   xp: number;
@@ -244,7 +245,7 @@ function TopBar() {
             onClick={() => router.push("/dashboard")}
             whileHover={{ scale: 1.05 }}
           >
-            ⚔️ Cultivation
+            {settings.terminologyMode === "fantasy" ? "⚔️ Cultivation" : "🏋️ Conventional"}
           </motion.span>
         </div>
 

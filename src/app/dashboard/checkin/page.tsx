@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import GlowButton from "@/components/ui/GlowButton";
 import GlowInput from "@/components/ui/GlowInput";
@@ -139,6 +139,7 @@ export default function CheckInPage() {
   // Weight prompt state
   const [showWeightPrompt, setShowWeightPrompt] = useState(false);
   const [weightPromptValue, setWeightPromptValue] = useState("");
+  const weightPromptDismissedRef = useRef(false);
 
   const fetchCommunityNotes = useCallback(async () => {
     try {
@@ -243,19 +244,15 @@ export default function CheckInPage() {
     fetchCommunityNotes();
   }, [fetchData, fetchCommunityNotes]);
 
-  // Show weight prompt on page load if user hasn't logged weight today and hasn't dismissed
+  // Show weight prompt on page load if user hasn't logged weight today
   useEffect(() => {
-    if (loading || !user || rows.length === 0) return;
-    try {
-      const dismissed = localStorage.getItem("weight-prompt-dismissed");
-      const today = formatDateLocal(new Date());
-      if (dismissed === today) return;
-      const todayRow = rows.find(r => r.date === today);
-      const userEntry = todayRow?.entries[user.id];
-      if (!userEntry?.weight) {
-        setShowWeightPrompt(true);
-      }
-    } catch { /* ignore */ }
+    if (loading || !user || rows.length === 0 || weightPromptDismissedRef.current) return;
+    const today = formatDateLocal(new Date());
+    const todayRow = rows.find(r => r.date === today);
+    const userEntry = todayRow?.entries[user.id];
+    if (!userEntry?.weight) {
+      setShowWeightPrompt(true);
+    }
   }, [loading, user, rows]);
 
   const handleWeightPromptSubmit = async () => {
@@ -275,23 +272,11 @@ export default function CheckInPage() {
       await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today, entries: { [user.id]: updatedEntry } }),
+        body: JSON.stringify({ date: today, entries: { [user.id]: updatedEntry }, requestingUserId: user.id }),
       });
     } catch (err) {
       console.error("Failed to save weight:", err);
     }
-    setShowWeightPrompt(false);
-    setWeightPromptValue("");
-  };
-
-  const handleWeightPromptSkip = () => {
-    setShowWeightPrompt(false);
-    setWeightPromptValue("");
-  };
-
-  const handleWeightPromptDismissToday = () => {
-    const today = formatDateLocal(new Date());
-    localStorage.setItem("weight-prompt-dismissed", today);
     setShowWeightPrompt(false);
     setWeightPromptValue("");
   };
@@ -408,7 +393,7 @@ export default function CheckInPage() {
       await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, entries }),
+        body: JSON.stringify({ date, entries, requestingUserId: user.id }),
       });
 
       // Award XP only when checking in (not when unchecking)
@@ -432,7 +417,7 @@ export default function CheckInPage() {
       const saveRes = await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, entries: row.entries }),
+        body: JSON.stringify({ date, entries: row.entries, requestingUserId: user.id }),
       });
 
       if (!saveRes.ok) throw new Error("Failed to save check-in");
@@ -751,7 +736,8 @@ export default function CheckInPage() {
                                   e.target.checked
                                 )
                               }
-                              className="w-4 h-4 accent-jade-glow cursor-pointer"
+                              disabled={u.id !== user?.id}
+                              className={`w-4 h-4 accent-jade-glow ${u.id === user?.id ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
                             />
                           </td>
                         ))}
@@ -760,35 +746,41 @@ export default function CheckInPage() {
                             key={`weight-${row.date}-${u.id}`}
                             className="px-2 py-1.5 align-middle"
                           >
-                            <input
-                              type="number"
-                              step="0.1"
-                              placeholder="—"
-                              value={row.entries[u.id]?.weight || ""}
-                              onChange={(e) => {
-                                updateCell(
-                                  row.date,
-                                  u.id,
-                                  "weight",
-                                  e.target.value
-                                );
-                                // Award XP when weight is entered
-                                if (e.target.value && u.id === user?.id) {
-                                  (async () => {
-                                    try {
-                                      await awardCheckInXP(u.id);
-                                      setXpFeedback({ show: true, xp: 10, userId: u.id });
-                                      setTimeout(() => {
-                                        setXpFeedback({ show: false, xp: 0, userId: "" });
-                                      }, 2000);
-                                    } catch (err) {
-                                      console.error("Failed to award XP:", err);
-                                    }
-                                  })();
-                                }
-                              }}
-                              className="w-20 bg-transparent border-b border-ink-light text-center text-xs text-cloud-white focus:border-jade-glow outline-none transition-colors px-1"
-                            />
+                            {u.id === user?.id ? (
+                              <input
+                                type="number"
+                                step="0.1"
+                                placeholder="—"
+                                value={row.entries[u.id]?.weight || ""}
+                                onChange={(e) => {
+                                  updateCell(
+                                    row.date,
+                                    u.id,
+                                    "weight",
+                                    e.target.value
+                                  );
+                                  // Award XP when weight is entered
+                                  if (e.target.value) {
+                                    (async () => {
+                                      try {
+                                        await awardCheckInXP(u.id);
+                                        setXpFeedback({ show: true, xp: 10, userId: u.id });
+                                        setTimeout(() => {
+                                          setXpFeedback({ show: false, xp: 0, userId: "" });
+                                        }, 2000);
+                                      } catch (err) {
+                                        console.error("Failed to award XP:", err);
+                                      }
+                                    })();
+                                  }
+                                }}
+                                className="w-20 bg-transparent border-b border-ink-light text-center text-xs text-cloud-white focus:border-jade-glow outline-none transition-colors px-1"
+                              />
+                            ) : (
+                              <span className="text-xs text-mist-dark text-center block w-20">
+                                {row.entries[u.id]?.weight || "—"}
+                              </span>
+                            )}
                           </td>
                         ))}
                         <td className="px-2 py-1.5 align-middle">
@@ -870,7 +862,7 @@ export default function CheckInPage() {
       {/* Weight Prompt Modal */}
       <GlowModal
         isOpen={showWeightPrompt}
-        onClose={() => { setShowWeightPrompt(false); setWeightPromptValue(""); }}
+        onClose={() => { weightPromptDismissedRef.current = true; setShowWeightPrompt(false); setWeightPromptValue(""); }}
         title="⚖️ Log Your Weight"
       >
         <div className="space-y-4">
@@ -878,7 +870,7 @@ export default function CheckInPage() {
             You haven&apos;t logged your weight today. Tracking your weight helps monitor your cultivation progress.
           </p>
           <div>
-            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (lbs)</label>
+            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (kg)</label>
             <input
               type="number"
               placeholder="Enter your weight..."
@@ -889,7 +881,7 @@ export default function CheckInPage() {
               }}
               className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-3 text-sm text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
               min="0"
-              max="1000"
+              max="500"
               step="0.1"
               autoFocus
             />
@@ -906,19 +898,13 @@ export default function CheckInPage() {
               ⚖️ Save Weight
             </GlowButton>
             <GlowButton
-              variant="blue"
+              variant="ghost"
               className="w-full"
-              onClick={handleWeightPromptSkip}
+              onClick={() => { weightPromptDismissedRef.current = true; setShowWeightPrompt(false); setWeightPromptValue(""); }}
               size="sm"
             >
-              Skip for Now
+              Remind Me Later
             </GlowButton>
-            <button
-              onClick={handleWeightPromptDismissToday}
-              className="text-[10px] text-mist-dark hover:text-mist-mid transition-colors py-1"
-            >
-              Don&apos;t remind me today
-            </button>
           </div>
         </div>
       </GlowModal>

@@ -16,13 +16,25 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { date, entries } = await req.json();
+    const { date, entries, requestingUserId } = await req.json();
 
     if (!date || !entries) {
       return NextResponse.json(
         { error: "Date and entries are required" },
         { status: 400 }
       );
+    }
+
+    // Validate that the requesting user is only modifying their own entries
+    if (requestingUserId) {
+      const entryUserIds = Object.keys(entries);
+      const unauthorisedIds = entryUserIds.filter(id => id !== requestingUserId);
+      if (unauthorisedIds.length > 0) {
+        return NextResponse.json(
+          { error: "You can only modify your own check-in entries" },
+          { status: 403 }
+        );
+      }
     }
 
     const dateObj = new Date(date);

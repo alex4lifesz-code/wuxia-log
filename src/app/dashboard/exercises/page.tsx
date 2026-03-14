@@ -39,8 +39,6 @@ function ExercisesSidebar({
   setFilterDifficulty,
   filterType,
   setFilterType,
-  filterTargetGroup,
-  setFilterTargetGroup,
   total,
   isMobile,
   exercises,
@@ -57,8 +55,6 @@ function ExercisesSidebar({
   setFilterDifficulty: (v: string) => void;
   filterType: string;
   setFilterType: (v: string) => void;
-  filterTargetGroup: string;
-  setFilterTargetGroup: (v: string) => void;
   total: number;
   isMobile: boolean;
   exercises: Exercise[];
@@ -68,15 +64,6 @@ function ExercisesSidebar({
   setFilterFavourites: (v: boolean) => void;
   onDismissSidebar: () => void;
 }) {
-  // Get unique target groups from existing exercises
-  const availableTargetGroups = Array.from(
-    new Set(
-      exercises
-        .map(e => e.targetGroup)
-        .filter((tg): tg is string => Boolean(tg))
-        .sort()
-    )
-  );
   return (
     <div className="space-y-3">
       <GlowButton variant="jade" size="sm" glow className="w-full" onClick={onAdd}>
@@ -94,19 +81,17 @@ function ExercisesSidebar({
         />
       </div>
 
-      {/* Favourites filter */}
-      {favouriteIds.size > 0 && (
-        <div className="pt-2">
-          <GlowButton
-            variant={filterFavourites ? "gold" : "ghost"}
-            size="sm"
-            className="w-full text-xs"
-            onClick={() => setFilterFavourites(!filterFavourites)}
-          >
-            ★ Favourites ({favouriteIds.size})
-          </GlowButton>
-        </div>
-      )}
+      {/* Favourites filter — always visible */}
+      <div className="pt-2">
+        <GlowButton
+          variant={filterFavourites ? "gold" : "ghost"}
+          size="sm"
+          className="w-full text-xs"
+          onClick={() => setFilterFavourites(!filterFavourites)}
+        >
+          ★ Favourites{favouriteIds.size > 0 ? ` (${favouriteIds.size})` : ""}
+        </GlowButton>
+      </div>
 
       <div className="pt-2 space-y-2">
         {isMobile ? (
@@ -127,15 +112,6 @@ function ExercisesSidebar({
               options={[
                 { value: "", label: "All Paths" },
                 ...EXERCISE_TYPES.map((t) => ({ value: t, label: t })),
-              ]}
-            />
-            <GlowSelect
-              label="Target Group"
-              value={filterTargetGroup}
-              onChange={(e) => setFilterTargetGroup(e.target.value)}
-              options={[
-                { value: "", label: "All Target Groups" },
-                ...availableTargetGroups.map((tg) => ({ value: tg, label: tg })),
               ]}
             />
           </>
@@ -189,30 +165,6 @@ function ExercisesSidebar({
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-xs text-mist-dark uppercase mb-2">Target Group</p>
-              <div className="flex flex-wrap gap-1">
-                <GlowButton
-                  variant={filterTargetGroup === "" ? "jade" : "ghost"}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setFilterTargetGroup("")}
-                >
-                  All
-                </GlowButton>
-                {availableTargetGroups.map((tg) => (
-                  <GlowButton
-                    key={tg}
-                    variant={filterTargetGroup === tg ? "jade" : "ghost"}
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => setFilterTargetGroup(tg)}
-                  >
-                    {tg.split(" ")[0]}
-                  </GlowButton>
-                ))}
-              </div>
-            </div>
           </>
         )}
       </div>
@@ -233,7 +185,7 @@ export default function ExercisesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("");
   const [filterType, setFilterType] = useState("");
-  const [filterTargetGroup, setFilterTargetGroup] = useState("");
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState<Exercise | null>(null);
   const [hoveredExercise, setHoveredExercise] = useState<string | null>(null);
@@ -297,9 +249,8 @@ export default function ExercisesPage() {
       (e.targetGroup || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchDifficulty = !filterDifficulty || e.difficulty === filterDifficulty;
     const matchType = !filterType || e.type === filterType;
-    const matchTargetGroup = !filterTargetGroup || e.targetGroup === filterTargetGroup;
     const matchFavourites = !filterFavourites || favouriteIds.has(e.id);
-    return matchSearch && matchDifficulty && matchType && matchTargetGroup && matchFavourites;
+    return matchSearch && matchDifficulty && matchType && matchFavourites;
   });
 
   const addExercise = async () => {
@@ -352,8 +303,6 @@ export default function ExercisesPage() {
           setFilterDifficulty={setFilterDifficulty}
           filterType={filterType}
           setFilterType={setFilterType}
-          filterTargetGroup={filterTargetGroup}
-          setFilterTargetGroup={setFilterTargetGroup}
           total={exercises.length}
           isMobile={isMobile}
           exercises={exercises}
@@ -377,14 +326,16 @@ export default function ExercisesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {/* Main content search bar — always visible so users can refine queries regardless of results */}
-          <div className="mb-4">
-            <GlowInput
-              placeholder="Search techniques..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          {/* Main content search bar — mobile only; desktop uses sidebar search */}
+          {isMobile && (
+            <div className="mb-4">
+              <GlowInput
+                placeholder="Search techniques..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          )}
 
           {filteredExercises.length === 0 ? (
         <div className="text-center py-16">
