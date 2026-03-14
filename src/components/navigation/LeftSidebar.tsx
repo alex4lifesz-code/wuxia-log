@@ -11,13 +11,14 @@ import { t } from "@/lib/terminology";
 
 function LeftSidebar() {
   const { getSortedNavItems, collapsed, isMobile, reorderNavItems } = useAppContext();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { settings } = useDisplaySettings();
   const gamificationVisible = settings.gamificationVisible ?? true;
   const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
-  const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
+  const isAdmin = user?.role === "admin";
+  const items = getSortedNavItems().filter(item => (gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history")) && (item.id !== "admin" || isAdmin));
   const [isDragging, setIsDragging] = useState(false);
 
   // Hide on mobile or when collapsed to reduce visual noise
@@ -84,6 +85,12 @@ function LeftSidebar() {
       </Reorder.Group>
 
       <div className="px-4 pt-4 border-t border-ink-light mt-4 space-y-2">
+        {user && (
+          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+            <span className="text-xs">🧑</span>
+            <span className="text-xs text-cloud-white font-medium truncate">{user.name}</span>
+          </div>
+        )}
         <button
           onClick={logout}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-crimson-light/70 hover:text-crimson-light hover:bg-crimson-deep/20 border border-transparent hover:border-crimson/30 transition-all duration-200"

@@ -60,8 +60,8 @@ export default function AdminPanelPage() {
   const [isSavingName, setIsSavingName] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is admin (simplified check - should be based on role in production)
-  const isAdmin = user?.username === "admin";
+  // Check if user is admin based on role
+  const isAdmin = user?.role === "admin";
 
   const fetchData = useCallback(async () => {
     try {

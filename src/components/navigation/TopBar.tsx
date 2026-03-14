@@ -245,7 +245,7 @@ function TopBar() {
             onClick={() => router.push("/dashboard")}
             whileHover={{ scale: 1.05 }}
           >
-            {settings.terminologyMode === "fantasy" ? "⚔️ Cultivation" : "🏋️ Conventional"}
+            ⚔️ Immortals Log
           </motion.span>
         </div>
 
@@ -264,7 +264,7 @@ function TopBar() {
                     : "text-mist-light hover:text-cloud-white hover:bg-ink-mid"
                 }`}
               >
-                {item.icon} {item.label}
+                {item.icon} {t(item.label, settings.terminologyMode ?? "fantasy")}
               </motion.button>
             ))}
           </div>
@@ -274,6 +274,16 @@ function TopBar() {
         <div className="flex-1 flex items-center justify-end gap-3 border-l border-ink-light pl-3">
           <DisplaySettingsPopup />
           <div className="h-5 w-px bg-ink-light" />
+
+          {user && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-mist-dark">🧑</span>
+                <span className="text-xs font-semibold text-cloud-white">{user.name}</span>
+              </div>
+              <div className="h-5 w-px bg-ink-light" />
+            </>
+          )}
 
           {loading ? (
             <div className="text-xs text-mist-dark animate-pulse">Loading…</div>

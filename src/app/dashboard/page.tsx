@@ -164,7 +164,7 @@ function DashboardSidebar({ stats, allUsers, userColors, onColorChange }: { stat
   );
 }
 
-function CalendarDay({ date, checkedInUsers, isToday, isPast, hasNote, onClick }: { date: Date; checkedInUsers: { id: string; name: string; color: string }[]; isToday: boolean; isPast?: boolean; hasNote?: boolean; onClick?: () => void }) {
+function CalendarDay({ date, checkedInUsers, isToday, isPast, hasNote, hasFutureNote, onClick }: { date: Date; checkedInUsers: { id: string; name: string; color: string }[]; isToday: boolean; isPast?: boolean; hasNote?: boolean; hasFutureNote?: boolean; onClick?: () => void }) {
   const hasCheckIns = checkedInUsers.length > 0;
   return (
     <motion.div
@@ -173,6 +173,8 @@ function CalendarDay({ date, checkedInUsers, isToday, isPast, hasNote, onClick }
       className={`aspect-square flex flex-col items-center justify-center rounded-lg transition-all relative cursor-pointer ${
         isToday
           ? "border-2 border-jade-glow bg-jade-deep/30 hover:bg-jade-deep/50 shadow-[0_0_8px_rgba(58,143,143,0.3)]"
+          : hasFutureNote
+          ? "border border-jade/30 bg-jade-deep/15 hover:bg-jade-deep/25 shadow-[0_0_6px_rgba(29,72,72,0.3)]"
           : hasCheckIns
           ? "border border-jade/40 bg-jade-dark/15 hover:bg-jade-dark/30"
           : "border border-ink-light/60 bg-ink-dark/30 hover:bg-ink-mid/40"
@@ -199,11 +201,14 @@ function CalendarDay({ date, checkedInUsers, isToday, isPast, hasNote, onClick }
       {hasNote && (
         <div className="absolute top-0.5 right-0.5 text-[8px] text-gold-glow">📝</div>
       )}
+      {hasFutureNote && (
+        <div className="absolute bottom-0.5 right-0.5 text-[7px] font-bold text-jade-glow/70 uppercase leading-none drop-shadow-[0_0_3px_rgba(58,143,143,0.4)]">note</div>
+      )}
     </motion.div>
   );
 }
 
-function Calendar({ checkInUsersByDate, currentMonth, setCurrentMonth, dayNotes, onDayClick, allUsers, userColors }: { checkInUsersByDate: Map<string, string[]>; currentMonth: Date; setCurrentMonth: (d: Date) => void; dayNotes?: Map<string, string>; onDayClick?: (date: string) => void; allUsers: User[]; userColors: Record<string, string> }) {
+function Calendar({ checkInUsersByDate, currentMonth, setCurrentMonth, dayNotes, futureNoteDates, onDayClick, allUsers, userColors }: { checkInUsersByDate: Map<string, string[]>; currentMonth: Date; setCurrentMonth: (d: Date) => void; dayNotes?: Map<string, string>; futureNoteDates?: Set<string>; onDayClick?: (date: string) => void; allUsers: User[]; userColors: Record<string, string> }) {
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
   const days = [];
@@ -278,6 +283,7 @@ function Calendar({ checkInUsersByDate, currentMonth, setCurrentMonth, dayNotes,
                 isToday={formatDateLocal(date) === today}
                 isPast={formatDateLocal(date) < today}
                 hasNote={dayNotes?.has(formatDateLocal(date))}
+                hasFutureNote={futureNoteDates?.has(formatDateLocal(date))}
                 onClick={() => onDayClick?.(formatDateLocal(date))}
               />
             ) : (
@@ -328,6 +334,7 @@ export default function DaoHallPage() {
   const [dayNotes, setDayNotes] = useState<Map<string, string>>(new Map());
   const [editingNote, setEditingNote] = useState<{ date: string; note: string } | null>(null);
   const [communityNotes, setCommunityNotes] = useState<CommunityNote[]>([]);
+  const [futureNotes, setFutureNotes] = useState<CommunityNote[]>([]);
   const [newCommunityNote, setNewCommunityNote] = useState("");
   const [showAddNote, setShowAddNote] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -407,6 +414,17 @@ export default function DaoHallPage() {
     }
   }, []);
 
+  const refreshFutureNotes = useCallback(async () => {
+    try {
+      const todayStr = formatDateLocal(new Date());
+      const res = await fetch(`/api/checkins/notes?future=true&today=${todayStr}`);
+      const data = await res.json();
+      setFutureNotes(data.notes || []);
+    } catch (err) {
+      console.error("Failed to fetch future notes:", err);
+    }
+  }, []);
+
   const handleAddCommunityNote = async () => {
     if (!user || !editingNote || !newCommunityNote.trim()) return;
     try {
@@ -419,6 +437,7 @@ export default function DaoHallPage() {
         setNewCommunityNote("");
         setShowAddNote(false);
         fetchCommunityNotesForDate(editingNote.date);
+        refreshFutureNotes();
       }
     } catch (err) {
       console.error("Failed to add community note:", err);
@@ -435,6 +454,7 @@ export default function DaoHallPage() {
       });
       if (res.ok) {
         setCommunityNotes(prev => prev.filter(n => n.id !== noteId));
+        refreshFutureNotes();
       }
     } catch (err) {
       console.error("Failed to delete community note:", err);
@@ -488,9 +508,13 @@ export default function DaoHallPage() {
   const isWeightDismissedToday = useCallback(() => {
     try {
       const dismissed = localStorage.getItem("weight-prompt-dismissed");
-      if (!dismissed) return false;
-      const today = formatDateLocal(new Date());
-      return dismissed === today;
+      if (dismissed) {
+        const today = formatDateLocal(new Date());
+        if (dismissed === today) return true;
+      }
+      const hiddenUntil = localStorage.getItem("weight-prompt-hidden-until");
+      if (hiddenUntil && Date.now() < Number(hiddenUntil)) return true;
+      return false;
     } catch { return false; }
   }, []);
 
@@ -499,13 +523,40 @@ export default function DaoHallPage() {
     localStorage.setItem("weight-prompt-dismissed", today);
   };
 
+  const dismissWeightForOneHour = () => {
+    localStorage.setItem("weight-prompt-hidden-until", String(Date.now() + 60 * 60 * 1000));
+  };
+
   const proceedWithSaveCheckIn = async () => {
     if (!checkInModal || !user) return;
     try {
+      // Determine if this is a far-future date (2+ days ahead)
+      const modalDate = new Date(checkInModal.date + 'T00:00:00');
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((modalDate.getTime() - todayDate.getTime()) / 86400000);
+      const isFarFuture = diffDays >= 2;
+
+      // Only send the current user's entry to enforce ownership
+      const ownEntry = checkInModal.entries[user.id];
+      const ownEntries = ownEntry ? { [user.id]: ownEntry } : {};
+
+      // For far-future dates, save the comment as a community note so it appears in Upcoming Notes
+      // The shared comment is stored under the first user's entry in the modal
+      const sharedComment = (allUsers[0] && checkInModal.entries[allUsers[0].id]?.comment?.trim()) || "";
+      if (isFarFuture && sharedComment) {
+        await fetch("/api/checkins/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ date: checkInModal.date, userId: user.id, content: sharedComment }),
+        });
+        refreshFutureNotes();
+      }
+
       await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: checkInModal.date, entries: checkInModal.entries }),
+        body: JSON.stringify({ date: checkInModal.date, entries: ownEntries, requestingUserId: user.id }),
       });
 
       // Award XP if current user checked in
@@ -574,12 +625,13 @@ export default function DaoHallPage() {
     setCheckInModal(prev => prev ? { ...prev, entries: updatedEntries } : prev);
     setShowWeightPrompt(false);
     setWeightPromptValue("");
-    // Proceed with save using updated entries
+    // Proceed with save using updated entries — only send own entry
     try {
+      const ownEntry = updatedEntries[user.id];
       await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: checkInModal.date, entries: updatedEntries }),
+        body: JSON.stringify({ date: checkInModal.date, entries: { [user.id]: ownEntry }, requestingUserId: user.id }),
       });
 
       const currentEntry = updatedEntries[user.id];
@@ -624,6 +676,13 @@ export default function DaoHallPage() {
     await proceedWithSaveCheckIn();
   };
 
+  const handleWeightPromptDismissOneHour = async () => {
+    dismissWeightForOneHour();
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+    await proceedWithSaveCheckIn();
+  };
+
   const handleWeightPromptDismissToday = async () => {
     dismissWeightToday();
     setShowWeightPrompt(false);
@@ -632,6 +691,8 @@ export default function DaoHallPage() {
   };
 
   const handleCheckInToggle = async (date: string, userId: string, present: boolean) => {
+    // Only allow toggling own check-in
+    if (!user || userId !== user.id) return;
     // Update local row state
     setCheckInRows(prev => prev.map(row => {
       if (row.date !== date) return row;
@@ -640,7 +701,6 @@ export default function DaoHallPage() {
     }));
 
     // Auto-save
-    if (!user) return;
     try {
       const row = checkInRows.find(r => r.date === date);
       await fetch("/api/checkins", {
@@ -649,6 +709,7 @@ export default function DaoHallPage() {
         body: JSON.stringify({
           date,
           entries: { [userId]: { present, weight: row?.entries[userId]?.weight || "", comment: row?.entries[userId]?.comment || "" } },
+          requestingUserId: user.id,
         }),
       });
 
@@ -779,19 +840,24 @@ export default function DaoHallPage() {
       if (!user) return;
 
       try {
-        // Fetch check-ins and users in parallel
-        const [checkinsRes, usersRes, expRes, workoutRes, exerciseRes] = await Promise.all([
+        // Fetch check-ins, users, and future notes in parallel
+        const [checkinsRes, usersRes, expRes, workoutRes, exerciseRes, futureNotesRes] = await Promise.all([
           fetch("/api/checkins"),
           fetch("/api/users"),
           fetch(`/api/users/experience?userId=${user.id}`),
           fetch(`/api/workouts?userId=${user.id}`),
           fetch("/api/exercises"),
+          fetch(`/api/checkins/notes?future=true&today=${formatDateLocal(new Date())}`),
         ]);
         const checkinsData = await checkinsRes.json();
         const usersData = await usersRes.json();
         const expData = await expRes.json();
         const workoutData = await workoutRes.json();
         const exerciseData = await exerciseRes.json();
+        const futureNotesData = await futureNotesRes.json();
+
+        // Set future notes
+        setFutureNotes(futureNotesData.notes || []);
 
         // Set all users
         setAllUsers(usersData.users || []);
@@ -892,7 +958,7 @@ export default function DaoHallPage() {
       ) : (
         <div className="space-y-6">
           {/* Calendar */}
-          <Calendar checkInUsersByDate={checkInUsersByDate} currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} dayNotes={dayNotes} onDayClick={handleDayClick} allUsers={allUsers} userColors={userColors} />
+          <Calendar checkInUsersByDate={checkInUsersByDate} currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} dayNotes={dayNotes} futureNoteDates={new Set(futureNotes.map(n => n.date))} onDayClick={handleDayClick} allUsers={allUsers} userColors={userColors} />
 
           {/* Quick Actions */}
           <div>
@@ -921,6 +987,54 @@ export default function DaoHallPage() {
               ))}
             </div>
           </div>
+
+          {/* Future Notes Log */}
+          <GlowCard glow="gold" className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">📝</span>
+              <h3 className="text-sm text-gold-glow uppercase tracking-wider font-semibold">Upcoming Notes</h3>
+              {futureNotes.length > 0 && (
+                <span className="text-[10px] text-mist-dark bg-ink-mid/60 px-1.5 py-0.5 rounded-full">{futureNotes.length}</span>
+              )}
+            </div>
+            {futureNotes.length > 0 ? (
+              <div className="space-y-2">
+                {futureNotes.map((note) => {
+                  const noteUserIdx = allUsers.findIndex(u => u.id === note.user.id);
+                  const noteColor = userColors[note.user.id] || DEFAULT_CULTIVATOR_COLORS[noteUserIdx >= 0 ? noteUserIdx % DEFAULT_CULTIVATOR_COLORS.length : 0];
+                  return (
+                    <motion.div
+                      key={note.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-start gap-3 p-3 rounded-lg border border-ink-light/40 bg-ink-dark/40 hover:bg-ink-mid/30 transition-colors"
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                        style={{ backgroundColor: noteColor, boxShadow: `0 0 6px ${noteColor}80` }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                          <span className="text-xs font-semibold" style={{ color: noteColor }}>
+                            {note.user.name}
+                          </span>
+                          <span className="text-[10px] text-mist-dark">
+                            {formatDateWithPreference(note.date, dateFormat)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-mist-light leading-relaxed break-words">{note.content}</p>
+                        <span className="text-[9px] text-mist-dark mt-1 block">
+                          {new Date(note.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-mist-dark italic py-2">No upcoming notes. Add notes to future calendar dates to see them here.</p>
+            )}
+          </GlowCard>
 
           {/* XP Feedback */}
           {(settings.gamificationVisible ?? true) && xpFeedback.show && (
@@ -988,8 +1102,8 @@ export default function DaoHallPage() {
                 </motion.div>
               )}
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse table-auto">
+              <div className="overflow-x-auto -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <table className="text-xs border-collapse" style={{ whiteSpace: 'nowrap', minWidth: isSectEditMode ? '720px' : '600px' }}>
                   <thead>
                     <tr className="border-b-2 border-jade-glow/50 bg-ink-mid/40 text-mist-light">
                       <th className="px-1.5 py-2 text-left font-semibold uppercase tracking-wider text-mist-glow text-[11px] align-middle">
@@ -1063,7 +1177,8 @@ export default function DaoHallPage() {
                                 type="checkbox"
                                 checked={row.entries[u.id]?.present || false}
                                 onChange={(e) => handleCheckInToggle(row.date, u.id, e.target.checked)}
-                                className="w-4 h-4 accent-jade-glow cursor-pointer"
+                                disabled={u.id !== user.id}
+                                className={`w-4 h-4 accent-jade-glow ${u.id === user.id ? 'cursor-pointer' : 'cursor-default opacity-60'}`}
                               />
                             </td>
                           ))}
@@ -1072,7 +1187,7 @@ export default function DaoHallPage() {
                               key={`weight-${row.date}-${u.id}`}
                               className="px-1 py-1.5 text-center align-middle"
                             >
-                              {isSectEditMode ? (
+                              {isSectEditMode && u.id === user.id ? (
                                 <input
                                   type="number"
                                   step="0.1"
@@ -1195,18 +1310,22 @@ export default function DaoHallPage() {
                     return (
                       <motion.div
                         key={u.id}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
+                        whileHover={u.id === user.id ? { scale: 1.04 } : {}}
+                        whileTap={u.id === user.id ? { scale: 0.96 } : {}}
                         className={`rounded-lg border-2 transition-all duration-200 select-none ${
                           entry.present
                             ? "bg-jade-deep/30"
-                            : "border-ink-light bg-ink-dark/60 hover:bg-ink-mid/40 hover:border-mist-dark"
+                            : "border-ink-light bg-ink-dark/60"
+                        } ${
+                          u.id === user.id
+                            ? "hover:bg-ink-mid/40 hover:border-mist-dark"
+                            : "opacity-60 cursor-default"
                         }`}
                         style={entry.present ? { borderColor: color, boxShadow: `0 0 14px ${color}50` } : {}}
                       >
                         <div
-                          className="cursor-pointer p-3 text-center"
-                          onClick={() => updateCheckInModalEntry(u.id, "present", !entry.present)}
+                          className={`p-3 text-center ${u.id === user.id ? 'cursor-pointer' : 'cursor-default'}`}
+                          onClick={() => { if (u.id === user.id) updateCheckInModalEntry(u.id, "present", !entry.present); }}
                         >
                           <div className="flex flex-col items-center gap-1.5">
                             <span
@@ -1220,19 +1339,24 @@ export default function DaoHallPage() {
                             </span>
                           </div>
                         </div>
-                        {entry.present && (
+                        {entry.present && u.id === user.id && (
                           <div className="px-2 pb-2">
                             <input
                               type="number"
-                              placeholder="Weight (lbs)"
+                              placeholder="Weight (kg)"
                               value={entry.weight}
                               onClick={(e) => e.stopPropagation()}
                               onChange={(e) => updateCheckInModalEntry(u.id, "weight", e.target.value)}
                               className="w-full bg-ink-deep/80 border border-ink-light rounded px-2 py-1 text-[10px] text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
                               min="0"
-                              max="1000"
+                              max="500"
                               step="0.1"
                             />
+                          </div>
+                        )}
+                        {entry.present && u.id !== user.id && entry.weight && (
+                          <div className="px-2 pb-2 text-center">
+                            <span className="text-[10px] text-mist-mid">{entry.weight} kg</span>
                           </div>
                         )}
                       </motion.div>
@@ -1279,12 +1403,12 @@ export default function DaoHallPage() {
         onClose={() => { setShowWeightPrompt(false); setWeightPromptValue(""); }}
         title="⚖️ Log Your Weight"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-mist-mid">
             You haven&apos;t logged your weight for this check-in. Tracking your weight helps monitor your cultivation progress.
           </p>
           <div>
-            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (lbs)</label>
+            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-2">Body Weight (kg)</label>
             <input
               type="number"
               placeholder="Enter your weight..."
@@ -1293,24 +1417,23 @@ export default function DaoHallPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && weightPromptValue) handleWeightPromptSubmit();
               }}
-              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-3 text-sm text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
+              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-4 text-lg text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center font-medium"
               min="0"
-              max="1000"
+              max="500"
               step="0.1"
               autoFocus
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <GlowButton
-              variant="jade"
-              glow
-              className="w-full"
-              onClick={handleWeightPromptSubmit}
-              size="sm"
-              disabled={!weightPromptValue}
-            >
-              ⚖️ Save with Weight
-            </GlowButton>
+          <GlowButton
+            variant="jade"
+            glow
+            className="w-full py-3 text-base"
+            onClick={handleWeightPromptSubmit}
+            disabled={!weightPromptValue}
+          >
+            ⚖️ Save with Weight
+          </GlowButton>
+          <div className="grid grid-cols-2 gap-2">
             <GlowButton
               variant="blue"
               className="w-full"
@@ -1319,13 +1442,21 @@ export default function DaoHallPage() {
             >
               Skip for Now
             </GlowButton>
-            <button
-              onClick={handleWeightPromptDismissToday}
-              className="text-[10px] text-mist-dark hover:text-mist-mid transition-colors py-1"
+            <GlowButton
+              variant="ghost"
+              className="w-full"
+              onClick={handleWeightPromptDismissOneHour}
+              size="sm"
             >
-              Don&apos;t remind me today
-            </button>
+              Hide 1 Hour
+            </GlowButton>
           </div>
+          <button
+            onClick={handleWeightPromptDismissToday}
+            className="w-full text-[11px] text-mist-dark hover:text-mist-mid transition-colors py-2 text-center"
+          >
+            Don&apos;t remind me today
+          </button>
         </div>
       </GlowModal>
     </PageLayout>

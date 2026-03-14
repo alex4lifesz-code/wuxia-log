@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { useDisplaySettings } from "@/context/DisplaySettingsContext";
 import { useRouter, usePathname } from "next/navigation";
 import { memo, useCallback, useEffect } from "react";
@@ -9,11 +10,13 @@ import { t } from "@/lib/terminology";
 
 function FloatingMobileSidebar() {
   const { getSortedNavItems, isMobile, isNativeApp, mobileSidebarOpen, setMobileSidebarOpen } = useAppContext();
+  const { user } = useAuth();
   const { settings } = useDisplaySettings();
   const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
-  const items = getSortedNavItems();
+  const isAdmin = user?.role === "admin";
+  const items = getSortedNavItems().filter(item => item.id !== "admin" || isAdmin);
 
   // Auto-close sidebar whenever the route changes
   useEffect(() => {
@@ -65,7 +68,9 @@ function FloatingMobileSidebar() {
                 <h2 className="text-sm text-jade-glow font-bold tracking-[0.15em] uppercase">
                   ⚔ Navigation
                 </h2>
-                <p className="text-[10px] text-mist-dark mt-0.5">Cultivation Path</p>
+                {user && (
+                  <p className="text-[11px] text-mist-light mt-0.5 truncate">{user.name}</p>
+                )}
               </div>
               <motion.button
                 whileTap={{ scale: 0.9 }}

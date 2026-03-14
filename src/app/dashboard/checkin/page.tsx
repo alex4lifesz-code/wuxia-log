@@ -247,6 +247,10 @@ export default function CheckInPage() {
   // Show weight prompt on page load if user hasn't logged weight today
   useEffect(() => {
     if (loading || !user || rows.length === 0 || weightPromptDismissedRef.current) return;
+    try {
+      const hiddenUntil = localStorage.getItem("weight-prompt-hidden-until");
+      if (hiddenUntil && Date.now() < Number(hiddenUntil)) return;
+    } catch { /* ignore */ }
     const today = formatDateLocal(new Date());
     const todayRow = rows.find(r => r.date === today);
     const userEntry = todayRow?.entries[user.id];
@@ -865,12 +869,12 @@ export default function CheckInPage() {
         onClose={() => { weightPromptDismissedRef.current = true; setShowWeightPrompt(false); setWeightPromptValue(""); }}
         title="⚖️ Log Your Weight"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-mist-mid">
             You haven&apos;t logged your weight today. Tracking your weight helps monitor your cultivation progress.
           </p>
           <div>
-            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (kg)</label>
+            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-2">Body Weight (kg)</label>
             <input
               type="number"
               placeholder="Enter your weight..."
@@ -879,23 +883,35 @@ export default function CheckInPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && weightPromptValue) handleWeightPromptSubmit();
               }}
-              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-3 text-sm text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
+              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-4 text-lg text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center font-medium"
               min="0"
               max="500"
               step="0.1"
               autoFocus
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <GlowButton
+            variant="jade"
+            glow
+            className="w-full py-3 text-base"
+            onClick={handleWeightPromptSubmit}
+            disabled={!weightPromptValue}
+          >
+            ⚖️ Save Weight
+          </GlowButton>
+          <div className="grid grid-cols-2 gap-2">
             <GlowButton
-              variant="jade"
-              glow
+              variant="ghost"
               className="w-full"
-              onClick={handleWeightPromptSubmit}
+              onClick={() => {
+                try { localStorage.setItem("weight-prompt-hidden-until", String(Date.now() + 60 * 60 * 1000)); } catch { /* ignore */ }
+                weightPromptDismissedRef.current = true;
+                setShowWeightPrompt(false);
+                setWeightPromptValue("");
+              }}
               size="sm"
-              disabled={!weightPromptValue}
             >
-              ⚖️ Save Weight
+              Hide 1 Hour
             </GlowButton>
             <GlowButton
               variant="ghost"
@@ -903,7 +919,7 @@ export default function CheckInPage() {
               onClick={() => { weightPromptDismissedRef.current = true; setShowWeightPrompt(false); setWeightPromptValue(""); }}
               size="sm"
             >
-              Remind Me Later
+              Remind Later
             </GlowButton>
           </div>
         </div>

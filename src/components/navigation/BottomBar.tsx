@@ -28,13 +28,14 @@ const NAV_ICON_MAP: Record<string, ReactNode> = {
 
 function BottomBar() {
   const { getSortedNavItems, isMobile, viewportMode, isNativeApp, setMobileSidebarOpen, mobileSidebarOpen, activeDrawerClose } = useAppContext();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { settings } = useDisplaySettings();
   const gamificationVisible = settings.gamificationVisible ?? true;
   const terminologyMode = settings.terminologyMode ?? "fantasy";
   const router = useRouter();
   const pathname = usePathname();
-  const items = getSortedNavItems().filter(item => gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history"));
+  const isAdmin = user?.role === "admin";
+  const items = getSortedNavItems().filter(item => (gamificationVisible || (item.id !== "progress" && item.id !== "community" && item.id !== "history")) && (item.id !== "admin" || isAdmin));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const effectiveMobile = isMobile || viewportMode === "mobile";
