@@ -40,10 +40,20 @@ export async function GET(req: NextRequest) {
       orderBy: { date: "desc" },
       ...(!showAll && !days ? { take: 10 } : {}),
     });
+
+    // Auto-derive targetGroups from exercises for workouts that don't have them yet
+    const enrichedWorkouts = workouts.map(w => {
+      if (w.targetGroups) return w;
+      const groups = new Set<string>();
+      for (const se of w.simplifiedExercises) {
+        if (se.exercise.targetGroup) groups.add(se.exercise.targetGroup);
+      }
+      return groups.size > 0 ? { ...w, targetGroups: Array.from(groups).join(",") } : w;
+    });
     
     console.log(`Found ${workouts.length} workouts${userId ? ` for user ${userId}` : ' (all users)'}`);
 
-    return NextResponse.json({ workouts });
+    return NextResponse.json({ workouts: enrichedWorkouts });
   } catch (error) {
     console.error("Workouts fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch workouts" }, { status: 500 });
@@ -131,6 +141,7 @@ export async function POST(req: NextRequest) {
         userId,
         name: `${exercise.name} Training`,
         totalXP: getDifficultyXP(exercise.difficulty),
+        targetGroups: exercise.targetGroup || null,
         simplifiedExercises: {
           create: {
             exerciseId,

@@ -6,7 +6,7 @@ import GlowCard from "@/components/ui/GlowCard";
 import GlowButton from "@/components/ui/GlowButton";
 import { useAuth } from "@/context/AuthContext";
 import { getDifficultyColorClass, getDifficultyGlowStyleScaled } from "@/lib/difficulty-styles";
-import { getTypeColor, formatDateWithPreference } from "@/lib/constants";
+import { getTypeColor, getTargetGroupColor, formatDateWithPreference } from "@/lib/constants";
 import { useDisplaySettings, TechniqueDisplayMode } from "@/context/DisplaySettingsContext";
 import { useAppContext } from "@/context/AppContext";
 import ExerciseHistoryModal from "@/components/workout/ExerciseHistoryModal";
@@ -28,6 +28,7 @@ interface WorkoutSession {
   name: string;
   date: string;
   totalXP: number;
+  targetGroups?: string | null;
   simplifiedExercises: {
     id: string;
     weight1: number | null;
@@ -546,6 +547,11 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                     {exercise.notes && (
                       <span className="text-[10px] text-mist-dark shrink-0" title={exercise.notes}>📝</span>
                     )}
+                    {exercise.exercise.targetGroup && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${getTargetGroupColor(exercise.exercise.targetGroup)} bg-ink-dark/50 border border-current/10 shrink-0`}>
+                        {exercise.exercise.targetGroup}
+                      </span>
+                    )}
                   </motion.div>
                 );
               })
@@ -634,6 +640,11 @@ export default function RecentSessionsDisplay({ refreshTrigger }: RecentSessions
                                     {settings.recentSessionsMode === "name-illumination-realm-path" && exercise.exercise.type && (
                                       <span className={`inline-flex items-center px-1 py-0 rounded text-[9px] font-medium ${getTypeColor(exercise.exercise.type)} border border-current/20 opacity-70`}>
                                         {exercise.exercise.type}
+                                      </span>
+                                    )}
+                                    {settings.recentSessionsMode === "name-illumination-realm-path" && exercise.exercise.targetGroup && (
+                                      <span className={`inline-flex items-center px-1 py-0 rounded text-[9px] font-medium ${getTargetGroupColor(exercise.exercise.targetGroup)} border border-current/20 opacity-70`}>
+                                        {exercise.exercise.targetGroup}
                                       </span>
                                     )}
                                   </>

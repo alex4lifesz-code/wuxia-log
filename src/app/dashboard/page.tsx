@@ -340,6 +340,10 @@ export default function DaoHallPage() {
     entries: Record<string, { present: boolean; weight: string; comment: string }>;
   } | null>(null);
 
+  // Weight prompt modal state
+  const [showWeightPrompt, setShowWeightPrompt] = useState(false);
+  const [weightPromptValue, setWeightPromptValue] = useState("");
+
   // Sect Register filter and inline edit state
   const [sectFilterDays, setSectFilterDays] = useState<7 | 14 | 30>(14);
   const [isSectEditMode, setIsSectEditMode] = useState(false);
@@ -481,7 +485,21 @@ export default function DaoHallPage() {
     });
   };
 
-  const handleSaveCheckIn = async () => {
+  const isWeightDismissedToday = useCallback(() => {
+    try {
+      const dismissed = localStorage.getItem("weight-prompt-dismissed");
+      if (!dismissed) return false;
+      const today = formatDateLocal(new Date());
+      return dismissed === today;
+    } catch { return false; }
+  }, []);
+
+  const dismissWeightToday = () => {
+    const today = formatDateLocal(new Date());
+    localStorage.setItem("weight-prompt-dismissed", today);
+  };
+
+  const proceedWithSaveCheckIn = async () => {
     if (!checkInModal || !user) return;
     try {
       await fetch("/api/checkins", {
@@ -520,6 +538,8 @@ export default function DaoHallPage() {
       });
 
       setCheckInModal(null);
+      setShowWeightPrompt(false);
+      setWeightPromptValue("");
 
       // Scroll to Sect Register to show the saved entry
       setTimeout(() => {
@@ -528,6 +548,87 @@ export default function DaoHallPage() {
     } catch (err) {
       console.error("Failed to save check-in:", err);
     }
+  };
+
+  const handleSaveCheckIn = async () => {
+    if (!checkInModal || !user) return;
+
+    // Check if the current user is checked in but hasn't entered weight
+    const currentUserEntry = checkInModal.entries[user.id];
+    if (currentUserEntry?.present && !currentUserEntry.weight && !isWeightDismissedToday()) {
+      setShowWeightPrompt(true);
+      return;
+    }
+
+    await proceedWithSaveCheckIn();
+  };
+
+  const handleWeightPromptSubmit = async () => {
+    if (!checkInModal || !user || !weightPromptValue) return;
+    updateCheckInModalEntry(user.id, "weight", weightPromptValue);
+    // Need to wait for state update, so we save directly with the weight
+    const updatedEntries = {
+      ...checkInModal.entries,
+      [user.id]: { ...checkInModal.entries[user.id], weight: weightPromptValue },
+    };
+    setCheckInModal(prev => prev ? { ...prev, entries: updatedEntries } : prev);
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+    // Proceed with save using updated entries
+    try {
+      await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: checkInModal.date, entries: updatedEntries }),
+      });
+
+      const currentEntry = updatedEntries[user.id];
+      if (currentEntry?.present) {
+        await awardCheckInXP(user.id);
+        setXpFeedback({ show: true, xp: 15 });
+        setTimeout(() => setXpFeedback({ show: false, xp: 0 }), 3000);
+      }
+
+      setCheckInRows(prev => {
+        const filtered = prev.filter(r => r.date !== checkInModal.date);
+        const newRow = { date: checkInModal.date, entries: updatedEntries };
+        return [newRow, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
+      });
+
+      setCheckInUsersByDate(prev => {
+        const updated = new Map(prev);
+        const presentUserIds = Object.entries(updatedEntries)
+          .filter(([, e]) => e.present)
+          .map(([uid]) => uid);
+        if (presentUserIds.length > 0) {
+          updated.set(checkInModal.date, presentUserIds);
+        } else {
+          updated.delete(checkInModal.date);
+        }
+        return updated;
+      });
+
+      setCheckInModal(null);
+
+      setTimeout(() => {
+        sectRegisterRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (err) {
+      console.error("Failed to save check-in:", err);
+    }
+  };
+
+  const handleWeightPromptSkip = async () => {
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+    await proceedWithSaveCheckIn();
+  };
+
+  const handleWeightPromptDismissToday = async () => {
+    dismissWeightToday();
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+    await proceedWithSaveCheckIn();
   };
 
   const handleCheckInToggle = async (date: string, userId: string, present: boolean) => {
@@ -1096,25 +1197,44 @@ export default function DaoHallPage() {
                         key={u.id}
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.96 }}
-                        onClick={() => updateCheckInModalEntry(u.id, "present", !entry.present)}
-                        className={`cursor-pointer rounded-lg border-2 p-3 text-center transition-all duration-200 select-none ${
+                        className={`rounded-lg border-2 transition-all duration-200 select-none ${
                           entry.present
                             ? "bg-jade-deep/30"
                             : "border-ink-light bg-ink-dark/60 hover:bg-ink-mid/40 hover:border-mist-dark"
                         }`}
                         style={entry.present ? { borderColor: color, boxShadow: `0 0 14px ${color}50` } : {}}
                       >
-                        <div className="flex flex-col items-center gap-1.5">
-                          <span
-                            className="text-xl font-bold transition-all drop-shadow-[0_0_4px_currentColor]"
-                            style={{ color: entry.present ? color : '#4b5563' }}
-                          >
-                            {entry.present ? '✓' : '○'}
-                          </span>
-                          <span className={`text-xs font-medium transition-colors ${entry.present ? 'text-cloud-white' : 'text-mist-mid'}`}>
-                            {u.name}
-                          </span>
+                        <div
+                          className="cursor-pointer p-3 text-center"
+                          onClick={() => updateCheckInModalEntry(u.id, "present", !entry.present)}
+                        >
+                          <div className="flex flex-col items-center gap-1.5">
+                            <span
+                              className="text-xl font-bold transition-all drop-shadow-[0_0_4px_currentColor]"
+                              style={{ color: entry.present ? color : '#4b5563' }}
+                            >
+                              {entry.present ? '✓' : '○'}
+                            </span>
+                            <span className={`text-xs font-medium transition-colors ${entry.present ? 'text-cloud-white' : 'text-mist-mid'}`}>
+                              {u.name}
+                            </span>
+                          </div>
                         </div>
+                        {entry.present && (
+                          <div className="px-2 pb-2">
+                            <input
+                              type="number"
+                              placeholder="Weight (lbs)"
+                              value={entry.weight}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => updateCheckInModalEntry(u.id, "weight", e.target.value)}
+                              className="w-full bg-ink-deep/80 border border-ink-light rounded px-2 py-1 text-[10px] text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
+                              min="0"
+                              max="1000"
+                              step="0.1"
+                            />
+                          </div>
+                        )}
                       </motion.div>
                     );
                   })}
@@ -1150,6 +1270,62 @@ export default function DaoHallPage() {
             </>
             );
           })()}
+        </div>
+      </GlowModal>
+
+      {/* Weight Prompt Modal */}
+      <GlowModal
+        isOpen={showWeightPrompt}
+        onClose={() => { setShowWeightPrompt(false); setWeightPromptValue(""); }}
+        title="⚖️ Log Your Weight"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-mist-mid">
+            You haven&apos;t logged your weight for this check-in. Tracking your weight helps monitor your cultivation progress.
+          </p>
+          <div>
+            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (lbs)</label>
+            <input
+              type="number"
+              placeholder="Enter your weight..."
+              value={weightPromptValue}
+              onChange={(e) => setWeightPromptValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && weightPromptValue) handleWeightPromptSubmit();
+              }}
+              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-3 text-sm text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
+              min="0"
+              max="1000"
+              step="0.1"
+              autoFocus
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <GlowButton
+              variant="jade"
+              glow
+              className="w-full"
+              onClick={handleWeightPromptSubmit}
+              size="sm"
+              disabled={!weightPromptValue}
+            >
+              ⚖️ Save with Weight
+            </GlowButton>
+            <GlowButton
+              variant="blue"
+              className="w-full"
+              onClick={handleWeightPromptSkip}
+              size="sm"
+            >
+              Skip for Now
+            </GlowButton>
+            <button
+              onClick={handleWeightPromptDismissToday}
+              className="text-[10px] text-mist-dark hover:text-mist-mid transition-colors py-1"
+            >
+              Don&apos;t remind me today
+            </button>
+          </div>
         </div>
       </GlowModal>
     </PageLayout>
