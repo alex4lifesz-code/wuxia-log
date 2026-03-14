@@ -136,6 +136,10 @@ export default function CheckInPage() {
   const [customRangeStart, setCustomRangeStart] = useState("");
   const [customRangeEnd, setCustomRangeEnd] = useState("");
 
+  // Weight prompt state
+  const [showWeightPrompt, setShowWeightPrompt] = useState(false);
+  const [weightPromptValue, setWeightPromptValue] = useState("");
+
   const fetchCommunityNotes = useCallback(async () => {
     try {
       const res = await fetch("/api/checkins/notes");
@@ -238,6 +242,59 @@ export default function CheckInPage() {
     fetchData();
     fetchCommunityNotes();
   }, [fetchData, fetchCommunityNotes]);
+
+  // Show weight prompt on page load if user hasn't logged weight today and hasn't dismissed
+  useEffect(() => {
+    if (loading || !user || rows.length === 0) return;
+    try {
+      const dismissed = localStorage.getItem("weight-prompt-dismissed");
+      const today = formatDateLocal(new Date());
+      if (dismissed === today) return;
+      const todayRow = rows.find(r => r.date === today);
+      const userEntry = todayRow?.entries[user.id];
+      if (!userEntry?.weight) {
+        setShowWeightPrompt(true);
+      }
+    } catch { /* ignore */ }
+  }, [loading, user, rows]);
+
+  const handleWeightPromptSubmit = async () => {
+    if (!user || !weightPromptValue) return;
+    const today = formatDateLocal(new Date());
+    // Update local row state
+    setRows(prev => prev.map(row => {
+      if (row.date !== today) return row;
+      const entry = row.entries[user.id] || { present: false, weight: "", comment: "" };
+      return { ...row, entries: { ...row.entries, [user.id]: { ...entry, weight: weightPromptValue } } };
+    }));
+    // Save to API
+    const todayRow = rows.find(r => r.date === today);
+    const entry = todayRow?.entries[user.id] || { present: false, weight: "", comment: "" };
+    const updatedEntry = { ...entry, weight: weightPromptValue };
+    try {
+      await fetch("/api/checkins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: today, entries: { [user.id]: updatedEntry } }),
+      });
+    } catch (err) {
+      console.error("Failed to save weight:", err);
+    }
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+  };
+
+  const handleWeightPromptSkip = () => {
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+  };
+
+  const handleWeightPromptDismissToday = () => {
+    const today = formatDateLocal(new Date());
+    localStorage.setItem("weight-prompt-dismissed", today);
+    setShowWeightPrompt(false);
+    setWeightPromptValue("");
+  };
 
   // Load day notes from localStorage
   useEffect(() => {
@@ -807,6 +864,62 @@ export default function CheckInPage() {
               </div>
             </>
           )}
+        </div>
+      </GlowModal>
+
+      {/* Weight Prompt Modal */}
+      <GlowModal
+        isOpen={showWeightPrompt}
+        onClose={() => { setShowWeightPrompt(false); setWeightPromptValue(""); }}
+        title="⚖️ Log Your Weight"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-mist-mid">
+            You haven&apos;t logged your weight today. Tracking your weight helps monitor your cultivation progress.
+          </p>
+          <div>
+            <label className="block text-[10px] text-jade-glow uppercase tracking-wider mb-1.5">Body Weight (lbs)</label>
+            <input
+              type="number"
+              placeholder="Enter your weight..."
+              value={weightPromptValue}
+              onChange={(e) => setWeightPromptValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && weightPromptValue) handleWeightPromptSubmit();
+              }}
+              className="w-full bg-ink-deep border border-ink-light rounded-lg px-4 py-3 text-sm text-cloud-white placeholder-mist-dark outline-none focus:border-jade-glow transition-colors text-center"
+              min="0"
+              max="1000"
+              step="0.1"
+              autoFocus
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <GlowButton
+              variant="jade"
+              glow
+              className="w-full"
+              onClick={handleWeightPromptSubmit}
+              size="sm"
+              disabled={!weightPromptValue}
+            >
+              ⚖️ Save Weight
+            </GlowButton>
+            <GlowButton
+              variant="blue"
+              className="w-full"
+              onClick={handleWeightPromptSkip}
+              size="sm"
+            >
+              Skip for Now
+            </GlowButton>
+            <button
+              onClick={handleWeightPromptDismissToday}
+              className="text-[10px] text-mist-dark hover:text-mist-mid transition-colors py-1"
+            >
+              Don&apos;t remind me today
+            </button>
+          </div>
         </div>
       </GlowModal>
 

@@ -10,7 +10,6 @@ import {
   DAY_LETTERS,
   DIFFICULTY_LEVELS,
   EXERCISE_TYPES,
-  TARGET_GROUP_CATEGORIES,
   parseDayAssignments,
   toggleDayAssignment,
   isDayAssigned
@@ -266,7 +265,6 @@ export default function TechniqueManagementDrawer({
   const [dayFilter, setDayFilter] = useState<number | null>(selectedDayFilter);
   const [pathFilter, setPathFilter] = useState("");
   const [realmFilter, setRealmFilter] = useState(""); 
-  const [targetGroupFilter, setTargetGroupFilter] = useState("");
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const [isCompactView, setIsCompactView] = useState(false);
 
@@ -280,16 +278,6 @@ export default function TechniqueManagementDrawer({
     setOrderedIds(exercises.map(e => e.id));
   }, [exercises]);
 
-  // Get unique target groups from exercises
-  const availableTargetGroups = Array.from(
-    new Set(
-      exercises
-        .map(e => e.targetGroup)
-        .filter((tg): tg is string => Boolean(tg))
-        .sort()
-    )
-  );
-
   // Enhanced filter logic
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.name
@@ -298,8 +286,7 @@ export default function TechniqueManagementDrawer({
     const matchesDay = dayFilter === null || isDayAssigned(exercise.assignedDays || "", dayFilter);
     const matchesPath = !pathFilter || exercise.type === pathFilter;
     const matchesRealm = !realmFilter || exercise.difficulty === realmFilter;
-    const matchesTargetGroup = !targetGroupFilter || exercise.targetGroup === targetGroupFilter;
-    return matchesSearch && matchesDay && matchesPath && matchesRealm && matchesTargetGroup;
+    return matchesSearch && matchesDay && matchesPath && matchesRealm;
   });
 
   // Sort filtered exercises by drag order
@@ -333,10 +320,9 @@ export default function TechniqueManagementDrawer({
     setDayFilter(null);
     setPathFilter("");
     setRealmFilter("");
-    setTargetGroupFilter("");
   };
 
-  const hasActiveFilters = searchTerm || dayFilter !== null || pathFilter || realmFilter || targetGroupFilter;
+  const hasActiveFilters = searchTerm || dayFilter !== null || pathFilter || realmFilter;
 
   // Compute technique counts per day for badge display
   const dayCounts = useMemo(() => {
@@ -459,7 +445,7 @@ export default function TechniqueManagementDrawer({
               </div>
 
               {/* Filter Controls — dark themed selects */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <select
                   value={realmFilter}
                   onChange={(e) => setRealmFilter(e.target.value)}
@@ -481,27 +467,6 @@ export default function TechniqueManagementDrawer({
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                
-                {availableTargetGroups.length > 0 && (
-                  <select
-                    value={targetGroupFilter}
-                    onChange={(e) => setTargetGroupFilter(e.target.value)}
-                    className="bg-ink-deep border border-ink-light rounded-lg px-3 py-2 text-xs text-cloud-white outline-none transition-all duration-200 focus:border-jade-glow/50 focus:shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_15%,transparent)] cursor-pointer"
-                  >
-                    <option value="">All Targets</option>
-                    {TARGET_GROUP_CATEGORIES.map((cat) => {
-                      const available = cat.groups.filter((g) => availableTargetGroups.includes(g));
-                      if (available.length === 0) return null;
-                      return (
-                        <optgroup key={cat.label} label={cat.label}>
-                          {available.map((tg) => (
-                            <option key={tg} value={tg}>{tg}</option>
-                          ))}
-                        </optgroup>
-                      );
-                    })}
-                  </select>
-                )}
               </div>
 
               {/* Day of Week Filter — cohesive button group with count badges */}
